@@ -9,28 +9,33 @@ const canvas = document.getElementById('canvas');
 const width = (canvas.width = 400);
 const height = (canvas.height = 400);
 const context = canvas.getContext('2d');
+const errorText = document.getElementById('error');
 let ID;
 
 let perceptron;
-const N_TRAINING_SAMPLES = 2000;
+const n_trainingSamples = 2000;
 const trainingSamples = [];
 
 // We will train the perceptron with one sample object at a time
 let count = 0;
 
 // Coordinate space
-let xmin = -1;
-let ymin = -1;
-let xmax = 1;
-let ymax = 1;
+const xmin = -1;
+const ymin = -1;
+const xmax = 1;
+const ymax = 1;
 
-// The function to describe a line
+/**
+ *  The function to describe a line
+ */
 function f(x) {
-  let y = 0.3 * x + 0.4;
+  let y = 0.2 * x + 0.4;
   return y;
 }
 
-// Some transformation for mapping coordinate space into canvas
+/**
+ * Some transformation for mapping coordinate space into canvas
+ */
 function transformX(x) {
   return Utils.map(x, xmin, xmax, 0, width);
 }
@@ -39,14 +44,16 @@ function transformY(y) {
   return Utils.map(y, ymin, ymax, height, 0);
 }
 
-// Called once at the beginning
+/**
+ * Called once at the beginning
+ */
 function setup() {
   // The perceptron has 3 inputs -- x, y, and bias
   // Learning Constant is low just b/c it's fun to watch, this is not necessarily optimal
   perceptron = new Perceptron(3, learningRate);
 
   // Create a random set of training points and calculate the "known" answer based on given function
-  for (let i = 0; i < N_TRAINING_SAMPLES; i++) {
+  for (let i = 0; i < n_trainingSamples; i++) {
     let x = Utils.getRandomArbitrary(xmin, xmax);
     let y = Utils.getRandomArbitrary(ymin, ymax);
     let answer = 1;
@@ -58,7 +65,9 @@ function setup() {
   }
 }
 
-// Called repeatedly
+/**
+ * Called repeatedly
+ */
 function draw() {
   context.fillStyle = 'WhiteSmoke';
   context.fillRect(0, 0, width, height);
@@ -97,8 +106,10 @@ function draw() {
     Utils.drawCircle(context, x, y, 3, 3, style);
   }
 
+  errorText.textContent = perceptron.getError();
+
   // Simply stop
-  if (count >= N_TRAINING_SAMPLES - 1) {
+  if (count >= n_trainingSamples - 1) {
     clearInterval(ID);
   }
 }

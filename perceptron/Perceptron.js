@@ -7,6 +7,8 @@ class Perceptron {
       this.weights[i] = Utils.getRandomArbitrary(-1, 1);
     }
     this.learningRate = learningRate;
+
+    this.error;
   }
 
   /**
@@ -15,9 +17,9 @@ class Perceptron {
    */
   train(inputs, expected) {
     let prediction = this.feedForward(inputs);
-    let error = expected - prediction;
+    this.error = expected - prediction;
     for (let i = 0; i < this.weights.length; i++) {
-      this.weights[i] += this.learningRate * error * inputs[i]; // Perceptron learning algorithm
+      this.weights[i] += this.learningRate * this.error * inputs[i]; // Perceptron learning algorithm
     }
   }
 
@@ -44,6 +46,10 @@ class Perceptron {
 
   getWeights() {
     return this.weights;
+  }
+
+  getError() {
+    return this.error;
   }
 
   print() {
