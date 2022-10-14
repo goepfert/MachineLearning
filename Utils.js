@@ -57,12 +57,41 @@ const Utils = (() => {
     return num;
   }
 
+  function drawLine(context, x1, y1, x2, y2, width, style) {
+    context.beginPath();
+    context.moveTo(x1, y1);
+    context.lineTo(x2, y2);
+
+    if (width != undefined) {
+      context.lineWidth = `${width}`;
+    }
+    if (style != undefined) {
+      context.strokeStyle = style;
+    }
+    context.stroke();
+  }
+
+  function drawCircle(context, x1, y1, r, width, style) {
+    context.beginPath();
+    context.arc(x1, y1, r, 0, Math.PI * 2);
+
+    if (width != undefined) {
+      context.lineWidth = `${width}`;
+    }
+    if (style != undefined) {
+      context.strokeStyle = style;
+    }
+    context.stroke();
+  }
+
   return {
     map,
     constrain,
     assert,
     getRandomArbitrary,
     randomGaussian,
+    drawLine,
+    drawCircle,
   };
 })();
 

@@ -1,16 +1,21 @@
 import Perceptron from './Perceptron.js';
 import Utils from '../Utils.js';
 
+// Most important things to play with
+const learningRate = 0.001;
+const drawTimeout_ms = 20;
+
 const canvas = document.getElementById('canvas');
-canvas.width = 400;
-canvas.height = 400;
+const width = (canvas.width = 400);
+const height = (canvas.height = 400);
 const context = canvas.getContext('2d');
+let ID;
 
 let perceptron;
-const N_TRAING_SAMPLES = 1000;
+const N_TRAINING_SAMPLES = 2000;
 const trainingSamples = [];
 
-// We will train the perceptron with one "Point" object at a time
+// We will train the perceptron with one sample object at a time
 let count = 0;
 
 // Coordinate space
@@ -25,13 +30,23 @@ function f(x) {
   return y;
 }
 
+// Some transformation for mapping coordinate space into canvas
+function transformX(x) {
+  return Utils.map(x, xmin, xmax, 0, width);
+}
+
+function transformY(y) {
+  return Utils.map(y, ymin, ymax, height, 0);
+}
+
+// Called once at the beginning
 function setup() {
   // The perceptron has 3 inputs -- x, y, and bias
   // Learning Constant is low just b/c it's fun to watch, this is not necessarily optimal
-  perceptron = new Perceptron(3, 0.001);
+  perceptron = new Perceptron(3, learningRate);
 
   // Create a random set of training points and calculate the "known" answer based on given function
-  for (let i = 0; i < N_TRAING_SAMPLES; i++) {
+  for (let i = 0; i < N_TRAINING_SAMPLES; i++) {
     let x = Utils.getRandomArbitrary(xmin, xmax);
     let y = Utils.getRandomArbitrary(ymin, ymax);
     let answer = 1;
@@ -43,52 +58,51 @@ function setup() {
   }
 }
 
+// Called repeatedly
 function draw() {
-  context.fillStyle = 'red';
-  context.fillRect(0, 0, 100, 50);
+  context.fillStyle = 'WhiteSmoke';
+  context.fillRect(0, 0, width, height);
 
-  // // Draw the line
-  // strokeWeight(1);
-  // stroke(255);
-  // let x1 = map(xmin, xmin, xmax, 0, width);
-  // let y1 = map(f(xmin), ymin, ymax, height, 0);
-  // let x2 = map(xmax, xmin, xmax, 0, width);
-  // let y2 = map(f(xmax), ymin, ymax, height, 0);
-  // line(x1, y1, x2, y2);
+  // Draw coordinate system
+  // Utils.drawLine(context, transformX(0), transformY(0), transformX(1), transformY(0), 1, 'black');
+  // Utils.drawLine(context, transformX(0), transformY(0), transformX(0), transformY(1), 1, 'black');
+  // Utils.drawLine(context, transformX(0), transformY(0), transformX(-1), transformY(0), 1, 'black');
+  // Utils.drawLine(context, transformX(0), transformY(0), transformX(0), transformY(-1), 1, 'black');
 
-  // // Draw the line based on the current weights
-  // // Formula is weights[0]*x + weights[1]*y + weights[2] = 0
-  // stroke(255);
-  // strokeWeight(2);
-  // let weights = ptron.getWeights();
-  // x1 = xmin;
-  // y1 = (-weights[2] - weights[0] * x1) / weights[1];
-  // x2 = xmax;
-  // y2 = (-weights[2] - weights[0] * x2) / weights[1];
+  // Draw function
+  Utils.drawLine(context, transformX(xmin), transformY(f(xmin)), transformX(xmax), transformY(f(xmax)), 2, 'black');
 
-  // x1 = map(x1, xmin, xmax, 0, width);
-  // y1 = map(y1, ymin, ymax, height, 0);
-  // x2 = map(x2, xmin, xmax, 0, width);
-  // y2 = map(y2, ymin, ymax, height, 0);
-  // line(x1, y1, x2, y2);
+  // Draw the line based on the current weights
+  // Formula is weights[0]*x + weights[1]*y + weights[2] = 0
+  let weights = perceptron.getWeights();
+  let y1 = (-weights[2] - weights[0] * xmin) / weights[1];
+  let y2 = (-weights[2] - weights[0] * xmax) / weights[1];
+  Utils.drawLine(context, transformX(xmin), transformY(y1), transformX(xmax), transformY(y2), 3, 'blue');
 
-  // // Train the Perceptron with one "training" point at a time
-  // ptron.train(training[count].input, training[count].output);
-  // count = (count + 1) % training.length;
+  // Train the Perceptron with one "training" point at a time
+  perceptron.train(trainingSamples[count].input, trainingSamples[count].output);
+  count = (count + 1) % trainingSamples.length;
 
-  // // Draw all the points based on what the Perceptron would "guess"
-  // // Does not use the "known" correct answer
-  // for (let i = 0; i < count; i++) {
-  //   stroke(255);
-  //   strokeWeight(1);
-  //   fill(255);
-  //   let guess = ptron.feedforward(training[i].input);
-  //   if (guess > 0) noFill();
+  // Draw all the points based on what the Perceptron would predict
+  for (let i = 0; i < count; i++) {
+    let prediction = perceptron.feedForward(trainingSamples[i].input);
+    let style = 'red';
+    if (prediction > 0) {
+      //if (trainingSamples[i].output > 0) {
+      style = 'green';
+    }
 
-  //   let x = map(training[i].input[0], xmin, xmax, 0, width);
-  //   let y = map(training[i].input[1], ymin, ymax, height, 0);
-  //   ellipse(x, y, 8, 8);
+    let x = Utils.map(trainingSamples[i].input[0], xmin, xmax, 0, width);
+    let y = Utils.map(trainingSamples[i].input[1], ymin, ymax, height, 0);
+    Utils.drawCircle(context, x, y, 3, 3, style);
+  }
+
+  // Simply stop
+  if (count >= N_TRAINING_SAMPLES - 1) {
+    clearInterval(ID);
+  }
 }
 
+// Kick off
 setup();
-setInterval(draw, 100);
+ID = setInterval(draw, drawTimeout_ms);
