@@ -293,7 +293,7 @@ test('matrix to array', () => {
   expect(array).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
 });
 
-test('chanining matrix methods', () => {
+test('chaining matrix methods', () => {
   let m = new Matrix(3, 3);
   m.data[0] = [1, 2, 3];
   m.data[1] = [4, 5, 6];

@@ -1,4 +1,7 @@
-const Utils = require('../../Utils');
+/**
+ * https://github.com/CodingTrain/Toy-Neural-Network-JS/
+ *
+ */
 
 class Matrix {
   constructor(rows, cols) {
@@ -9,7 +12,7 @@ class Matrix {
       .map(() => Array(this.cols).fill(0));
   }
 
-  // Return a deep copy of the matrix
+  // Returns a deep copy of the Matrix
   copy() {
     let m = new Matrix(this.rows, this.cols);
     for (let i = 0; i < this.rows; i++) {
@@ -20,14 +23,13 @@ class Matrix {
     return m;
   }
 
-  // Return a new Matrix Object (only one column) from flat array
+  // Returns a new Matrix Object (only one column) from flat array
   static fromArray(arr) {
     return new Matrix(arr.length, 1).map((e, i) => arr[i]);
   }
 
-  // Elementwise substraction
+  // Returns a new Matrix with elementwise substraction
   static subtract(a, b) {
-    Utils.assert(a.rows === b.rows, '');
     if (a.rows !== b.rows || a.cols !== b.cols) {
       console.log('Columns and Rows of A must match Columns and Rows of B.');
       return;
@@ -37,6 +39,7 @@ class Matrix {
     return new Matrix(a.rows, a.cols).map((_, i, j) => a.data[i][j] - b.data[i][j]);
   }
 
+  // Returns a flattened array of the Matrix
   toArray() {
     let arr = [];
     for (let i = 0; i < this.rows; i++) {
@@ -47,10 +50,12 @@ class Matrix {
     return arr;
   }
 
+  // Fills the Matrix with random number [-1, 1]
   randomize() {
     return this.map((e) => Math.random() * 2 - 1);
   }
 
+  // Matrix or Scalar addition
   add(n) {
     if (n instanceof Matrix) {
       if (this.rows !== n.rows || this.cols !== n.cols) {
@@ -63,10 +68,12 @@ class Matrix {
     }
   }
 
+  // Return a new transposed Matrix
   static transpose(matrix) {
     return new Matrix(matrix.cols, matrix.rows).map((_, i, j) => matrix.data[j][i]);
   }
 
+  // Returns an new Matrix that is a Dot product
   static multiply(a, b) {
     // Matrix product
     if (a.cols !== b.rows) {
@@ -84,13 +91,13 @@ class Matrix {
     });
   }
 
+  // Scalar or hadamard product
   multiply(n) {
     if (n instanceof Matrix) {
       if (this.rows !== n.rows || this.cols !== n.cols) {
         console.log('Columns and Rows of A must match Columns and Rows of B.');
         return;
       }
-
       // hadamard product
       return this.map((e, i, j) => e * n.data[i][j]);
     } else {
@@ -99,8 +106,8 @@ class Matrix {
     }
   }
 
+  // Apply a function to every element of matrix
   map(func) {
-    // Apply a function to every element of matrix
     for (let i = 0; i < this.rows; i++) {
       for (let j = 0; j < this.cols; j++) {
         let val = this.data[i][j];
@@ -110,8 +117,8 @@ class Matrix {
     return this;
   }
 
+  // Apply a function to every element of matrix
   static map(matrix, func) {
-    // Apply a function to every element of matrix
     return new Matrix(matrix.rows, matrix.cols).map((e, i, j) => func(matrix.data[i][j], i, j));
   }
 
