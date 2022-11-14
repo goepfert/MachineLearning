@@ -25,7 +25,7 @@ class NeuralNetwork {
     let hidden = Matrix.multiply(this.weights_input_hidden, input_matrix);
     hidden.add(this.bias_hidden);
     hidden.map(sigmoid);
-    // console.table(hidden.data);
+    //console.table(hidden.data);
 
     let output = Matrix.multiply(this.weights_hidden_output, hidden);
     output.add(this.bias_output);
@@ -33,5 +33,18 @@ class NeuralNetwork {
     // console.table(output.data);
 
     return output.toArray();
+  }
+
+  train(inputs, targets) {
+    let outputs = this.feedForward(inputs);
+
+    outputs = Matrix.fromArray(outputs);
+    outputs.print();
+    targets = Matrix.fromArray(targets);
+    targets.print();
+
+    // // Calculate the error
+    let error = Matrix.subtract(targets, outputs);
+    error.print();
   }
 }
