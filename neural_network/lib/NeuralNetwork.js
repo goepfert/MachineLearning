@@ -44,7 +44,12 @@ class NeuralNetwork {
     targets.print();
 
     // // Calculate the error
-    let error = Matrix.subtract(targets, outputs);
-    error.print();
+    let output_errors = Matrix.subtract(targets, outputs);
+
+    let weights_hidden_output_transposed = Matrix.transpose(this.weights_hidden_output);
+
+    let hidden_errros = Matrix.multiply(weights_hidden_output_transposed, output_errors);
+
+    hidden_errros.print();
   }
 }
