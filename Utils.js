@@ -95,8 +95,4 @@ const Utils = (() => {
   };
 })();
 
-// export default Utils;
-
-if (typeof module !== 'undefined') {
-  module.exports = Utils;
-}
+export default Utils;

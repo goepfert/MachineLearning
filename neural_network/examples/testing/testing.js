@@ -1,3 +1,6 @@
+import NeuralNetwork from '../../lib/NeuralNetwork.js';
+import Utils from '../../../Utils.js';
+
 let training_data = [
   {
     input: [0, 0],

@@ -1,3 +1,4 @@
+import Matrix from './Matrix.js';
 class NeuralNetwork {
   constructor(numberOfInputNodes, numberOfHiddenNodes, numberOfOutputNodes) {
     // Nodes
@@ -109,3 +110,5 @@ class NeuralNetwork {
     this.bias_h.add(hidden_gradient);
   }
 }
+
+export default NeuralNetwork;
