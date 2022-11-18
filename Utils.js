@@ -71,15 +71,19 @@ const Utils = (() => {
     context.stroke();
   }
 
-  function drawCircle(context, x1, y1, r, width, style) {
+  function drawCircle(context, x1, y1, r, width, fillstyle, strokestyle) {
     context.beginPath();
     context.arc(x1, y1, r, 0, Math.PI * 2);
 
     if (width != undefined) {
       context.lineWidth = `${width}`;
     }
-    if (style != undefined) {
-      context.strokeStyle = style;
+    if (fillstyle != undefined) {
+      context.fillStyle = fillstyle;
+      context.fill();
+    }
+    if (strokestyle != undefined) {
+      context.strokeStyle = strokestyle;
     }
     context.stroke();
   }

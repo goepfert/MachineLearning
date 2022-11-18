@@ -103,7 +103,7 @@ function draw() {
 
     let x = Utils.map(trainingSamples[i].input[0], xmin, xmax, 0, width);
     let y = Utils.map(trainingSamples[i].input[1], ymin, ymax, height, 0);
-    Utils.drawCircle(context, x, y, 3, 3, style);
+    Utils.drawCircle(context, x, y, 3, 3, style, style);
   }
 
   errorText.textContent = perceptron.getError();
