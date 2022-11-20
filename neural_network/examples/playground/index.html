@@ -10,9 +10,19 @@
   <body>
     <h1>Playground</h1>
     <div class="container">
-      <canvas id="canvas"></canvas>
-      <div id="loss_div" style="width: 600px; height: 300px"></div>
+      <div class="row">
+        <div>
+          <button class="train_btn" id="train_btn">Train</button>
+          <div class="dropdown">
+            <input class="text-box" type="text" placeholder="Distribution" readonly />
+            <div class="options"></div>
+          </div>
+        </div>
+        <canvas id="canvas"></canvas>
+        <div id="loss_div" style="width: 600px; height: 300px"></div>
+      </div>
     </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dygraph/2.1.0/dygraph.js"></script>
     <script src="playground.js" type="module"></script>
   </body>
