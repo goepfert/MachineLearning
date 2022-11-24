@@ -13,7 +13,9 @@ const context = canvas.getContext('2d');
 
 const train_btn = document.getElementById('train_btn');
 train_btn.addEventListener('click', () => {
-  ID = setInterval(draw, drawTimeout_ms);
+  if (training_data != undefined) {
+    ID = setInterval(draw, drawTimeout_ms);
+  }
 });
 
 const hue_blue = 240;
@@ -63,10 +65,17 @@ function drawTrainingData(context) {
   }
 }
 
+function clearCanvas(canvas) {
+  context.fillStyle = 'WhiteSmoke';
+  context.fillRect(0, 0, width, height);
+}
+
 /**
  * Called once at the beginning
  */
-function setup() {}
+function setup() {
+  clearCanvas(canvas);
+}
 
 /**
  * Called repeatedly
@@ -81,8 +90,7 @@ function draw() {
     return;
   }
 
-  context.fillStyle = 'WhiteSmoke';
-  context.fillRect(0, 0, width, height);
+  clearCanvas(canvas);
 
   // Train multiple times per draw iteration
   let loss = 0;
@@ -153,6 +161,8 @@ for (const dataset in Dataset) {
     show(dataset);
     training_data = createTrainingData(Dataset[dataset]);
     training_data_length = training_data.length;
+    clearCanvas(canvas);
+    drawTrainingData(context);
     console.log(training_data);
   };
   div.appendChild(div_element);
