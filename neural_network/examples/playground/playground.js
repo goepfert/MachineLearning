@@ -4,7 +4,7 @@ import { createTrainingData } from './TrainingData.js';
 import { Dataset } from './Dataset.js';
 
 const learningRate = 0.05;
-const max_iterations = 2000;
+const max_iterations = 3000;
 
 const canvas = document.getElementById('canvas');
 const width = (canvas.width = 400);
@@ -44,9 +44,7 @@ let loss_graph = new Dygraph(loss_div, loss_data, {
   //valueRange: [-1.0, 1.0]
 });
 
-function drawTrainingData(context) {
-  training_data;
-
+function drawTrainingData() {
   for (let idx = 0; idx < training_data_length; idx++) {
     let x1 = training_data[idx].input[0];
     let x2 = training_data[idx].input[1];
@@ -65,7 +63,7 @@ function drawTrainingData(context) {
   }
 }
 
-function clearCanvas(canvas) {
+function clearCanvas() {
   context.fillStyle = 'WhiteSmoke';
   context.fillRect(0, 0, width, height);
 }
@@ -74,7 +72,7 @@ function clearCanvas(canvas) {
  * Called once at the beginning
  */
 function setup() {
-  clearCanvas(canvas);
+  clearCanvas();
 }
 
 /**
@@ -90,11 +88,11 @@ function draw() {
     return;
   }
 
-  clearCanvas(canvas);
+  clearCanvas();
 
   // Train multiple times per draw iteration
   let loss = 0;
-  let nIter = 10000;
+  let nIter = 2000;
   for (let i = 0; i < nIter; i++) {
     let data_idx = Math.floor(Utils.getRandomArbitrary(0, training_data_length - 1) + 0.5);
 
@@ -135,7 +133,7 @@ function draw() {
     }
   }
 
-  drawTrainingData(context);
+  drawTrainingData();
 
   if (count % 100 == 0) {
     //console.log(count, nn.predict([0, 0]), nn.predict([1, 0]), nn.predict([0, 1]), nn.predict([1, 1]));
