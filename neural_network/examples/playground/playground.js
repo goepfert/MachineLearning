@@ -5,6 +5,7 @@ import { Dataset } from './Dataset.js';
 
 const learningRate = 0.05;
 const max_iterations = 3000;
+const iterations_per_draw_cycle = 1000;
 
 const canvas = document.getElementById('canvas');
 const width = (canvas.width = 400);
@@ -78,9 +79,9 @@ function setup() {
 /**
  * Called repeatedly
  */
-let grid = 5;
-let nCols = width / grid;
-let nRows = height / grid;
+const grid = 5;
+const nCols = width / grid;
+const nRows = height / grid;
 
 function draw() {
   if (training_data == undefined) {
@@ -92,35 +93,32 @@ function draw() {
 
   // Train multiple times per draw iteration
   let loss = 0;
-  let nIter = 2000;
-  for (let i = 0; i < nIter; i++) {
-    let data_idx = Math.floor(Utils.getRandomArbitrary(0, training_data_length - 1) + 0.5);
-
-    let input = training_data[data_idx].input;
-    let target = training_data[data_idx].target;
+  for (let i = 0; i < iterations_per_draw_cycle; i++) {
+    const data_idx = Math.floor(Utils.getRandomArbitrary(0, training_data_length - 1) + 0.5);
+    const input = training_data[data_idx].input;
+    const target = training_data[data_idx].target;
 
     nn.train(input, target);
 
-    let output = nn.predict(input);
-
-    let output_error = target[0] - output;
+    const output = nn.predict(input);
+    const output_error = target[0] - output;
     loss += 0.5 * output_error * output_error;
   }
-  loss /= nIter;
+  loss /= iterations_per_draw_cycle;
   loss_data.push([data_counter++, loss]);
   loss_graph.updateOptions({ file: loss_data });
 
   // https://www.w3schools.com/colors/colors_hsl.asp
   let h = 0;
-  let s = 60;
+  const s = 60;
   let l = 0;
 
   for (let col_idx = 0; col_idx < nCols; col_idx++) {
     for (let row_idx = 0; row_idx < nRows; row_idx++) {
-      let x1 = col_idx / nCols;
-      let x2 = row_idx / nRows;
-      let input = [x1, x2];
-      let y = nn.predict(input);
+      const x1 = col_idx / nCols;
+      const x2 = row_idx / nRows;
+      const input = [x1, x2];
+      const y = nn.predict(input);
       if (y > 0.5) {
         h = hue_blue;
         l = Math.floor(Utils.map(y, 0.5, 1, 100, 50));
@@ -161,7 +159,7 @@ for (const dataset in Dataset) {
     training_data_length = training_data.length;
     clearCanvas(canvas);
     drawTrainingData(context);
-    console.log(training_data);
+    //console.log(training_data);
   };
   div.appendChild(div_element);
 }

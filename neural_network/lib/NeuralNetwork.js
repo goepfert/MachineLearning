@@ -67,8 +67,9 @@ class NeuralNetwork {
     let target = Matrix.fromArray(target_array);
 
     // Calculate hidden and output
-    let hidden = this.#feedForward(input)[0];
-    let output = this.#feedForward(input)[1];
+    const feedForward_result = this.#feedForward(input);
+    const hidden = feedForward_result[0];
+    const output = feedForward_result[1];
 
     // Output Layer ---------------------------------------
 
@@ -105,7 +106,7 @@ class NeuralNetwork {
     let inputs_T = Matrix.transpose(input);
     let weight_ih_deltas = Matrix.multiply(hidden_gradient, inputs_T);
 
-    // Apply weight coorection
+    // Apply weight correction
     this.weights_ih.add(weight_ih_deltas);
     this.bias_h.add(hidden_gradient);
   }

@@ -141,7 +141,7 @@ class Matrix {
   }
 }
 
-// comment for running jest
+// comment out for running jest
 export default Matrix;
 
 if (typeof module !== 'undefined') {
