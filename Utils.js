@@ -88,6 +88,14 @@ const Utils = (() => {
     context.stroke();
   }
 
+  function download(content, fileName, contentType) {
+    let a = document.createElement('a');
+    let file = new Blob([content], { type: contentType });
+    a.href = URL.createObjectURL(file);
+    a.download = fileName;
+    a.click();
+  }
+
   return {
     map,
     constrain,
@@ -96,6 +104,7 @@ const Utils = (() => {
     randomGaussian,
     drawLine,
     drawCircle,
+    download,
   };
 })();
 
