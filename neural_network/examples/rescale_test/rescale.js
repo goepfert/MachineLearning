@@ -1,13 +1,13 @@
 import Utils from '../../../Utils.js';
 
 const canvas = document.getElementById('canvas');
-const width = (canvas.width = 256);
-const height = (canvas.height = 256);
+const width = (canvas.width = 280);
+const height = (canvas.height = 280);
 const context = canvas.getContext('2d');
 
-const grid = 1;
-const nCols = width / grid;
-const nRows = height / grid;
+let grid = 1;
+let nCols = width / grid;
+let nRows = height / grid;
 
 let imageData;
 
@@ -16,21 +16,41 @@ function draw() {
     for (let col_idx = 0; col_idx < nCols; col_idx++) {
       let color = 255;
       context.fillStyle = `rgb(${color}, ${color}, ${color})`;
-      context.fillStyle = `rgb(${color}, ${color}, ${color})`;
       context.fillRect(col_idx * grid, row_idx * grid, grid, grid);
     }
   }
 
-  Utils.drawLine(context, 0, 0, 256, 256, 2);
-  Utils.drawLine(context, 0, 256, 256, 0, 2);
-  Utils.drawCircle(context, 50, 50, 100);
+  // https://github.com/googlecreativelab/quickdraw-dataset/issues/19#issuecomment-402247262
+  const linewidth = 16;
 
-  resample_single(canvas, 28, 28, false);
+  Utils.drawLine(context, 110, 0, 120, 280, linewidth);
+  Utils.drawLine(context, 160, 0, 150, 280, linewidth);
+  Utils.drawCircle(context, 140, 140, 110, linewidth);
+
+  // return;
+
+  const scaled_img = resample_single(canvas, 28, 28, false);
+  //const scaled_img = resize(canvas, 28, 28);
+  let pos = 0;
+  grid = 9;
+  nCols = 28;
+  nRows = 28;
+
+  for (let row_idx = 0; row_idx < nRows; row_idx++) {
+    for (let col_idx = 0; col_idx < nCols; col_idx++) {
+      let color = (scaled_img.data[pos++] + scaled_img.data[pos++] + scaled_img.data[pos++]) / 3;
+      pos++;
+      context.fillStyle = `rgb(${color}, ${color}, ${color})`;
+      context.fillRect(col_idx * grid, row_idx * grid, grid, grid);
+    }
+  }
 }
 
 draw();
 
 /**
+ * https://stackoverflow.com/questions/2303690/resizing-an-image-in-an-html5-canvas
+ *
  * Hermite resize - fast image resize/resample using Hermite filter. 1 cpu version!
  *
  * @param {HtmlElement} canvas
@@ -106,11 +126,41 @@ function resample_single(canvas, width, height, resize_canvas) {
     canvas.width = width;
     canvas.height = height;
   } else {
-    // ctx.clearRect(0, 0, width_source, height_source);
+    ctx.clearRect(0, 0, width_source, height_source);
   }
 
   //draw
   ctx.putImageData(img2, 0, 0);
+
+  return img2;
 }
 
-// https://stackoverflow.com/questions/19262141/resize-image-with-javascript-canvas-smoothly/19262385#19262385
+// https://github.com/processing/p5.js/blob/00821f33ca1d8a6990364568f0374c4aaf713faa/src/image/p5.Image.js#L516
+function resize(canvas, width, height) {
+  let width_source = canvas.width;
+  let height_source = canvas.height;
+  width = Math.round(width);
+  height = Math.round(height);
+
+  let ctx = canvas.getContext('2d');
+  let img = ctx.getImageData(0, 0, width_source, height_source);
+  let img2 = ctx.createImageData(width, height);
+  let src_data = img.data;
+  let dst_data = img2.data;
+
+  let pos = 0;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const srcX = Math.floor((x * width_source) / width);
+      const srcY = Math.floor((y * height_source) / height);
+      let srcPos = (srcY * width_source + srcX) * 4;
+      dst_data[pos++] = src_data[srcPos++]; // R
+      dst_data[pos++] = src_data[srcPos++]; // G
+      dst_data[pos++] = src_data[srcPos++]; // B
+      dst_data[pos++] = src_data[srcPos++]; // A
+    }
+  }
+
+  ctx.clearRect(0, 0, width_source, height_source);
+  return img2;
+}

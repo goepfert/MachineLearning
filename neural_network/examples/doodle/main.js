@@ -1,3 +1,5 @@
+import Utils from '../../../Utils.js';
+
 const canvas = document.getElementById('canvas');
 const width = (canvas.width = 280);
 const height = (canvas.height = 280);
@@ -9,8 +11,6 @@ const nRows = height / grid;
 let uint8View;
 
 function handleFileSelect_load(evt) {
-  console.log('hello');
-
   const file = evt.target.files[0];
   const reader = new FileReader();
   reader.addEventListener('load', (event) => {
@@ -18,7 +18,8 @@ function handleFileSelect_load(evt) {
     let arrayBuffer = event.target.result;
     uint8View = new Uint8Array(arrayBuffer);
     // console.log((uint8View.length - header_length) / image_length);
-    setInterval(drawLoop, 500);
+    //setInterval(drawLoop, 500);
+    drawLoop();
   });
 
   reader.readAsArrayBuffer(file);
@@ -44,6 +45,7 @@ function draw(image) {
   for (let row_idx = 0; row_idx < nRows; row_idx++) {
     for (let col_idx = 0; col_idx < nCols; col_idx++) {
       let color = image[col_idx + row_idx * nCols];
+      color = Utils.map(color, 0, 255, 255, 0);
       //   console.log(col_idx, row_idx, col_idx + row_idx * nCols, color);
       context.fillStyle = `rgb(${color}, ${color}, ${color})`;
       context.fillRect(col_idx * grid, row_idx * grid, grid, grid);
