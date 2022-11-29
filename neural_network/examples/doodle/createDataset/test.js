@@ -1,3 +1,5 @@
+import { createImageDataset } from '../Dataset.js';
+
 const canvas = document.getElementById('canvas');
 const width = (canvas.width = 280);
 const height = (canvas.height = 280);
@@ -6,34 +8,42 @@ const context = canvas.getContext('2d');
 const grid = 10;
 const nCols = width / grid;
 const nRows = height / grid;
-let uint8View;
 
 function handleFileSelect_load(evt) {
-  console.log('hello');
-
   const file = evt.target.files[0];
   const reader = new FileReader();
   reader.addEventListener('load', (event) => {
     console.log(event.target);
-    let arrayBuffer = event.target.result;
-    uint8View = new Uint8Array(arrayBuffer);
-    // console.log((uint8View.length - header_length) / image_length);
-    setInterval(drawLoop, 500);
+    const res = event.target.result;
+    const textByLine = res.split('\n');
+    const data = JSON.parse(textByLine);
+
+    const imageDataset = createImageDataset();
+    imageDataset.clearData();
+    imageDataset.setData(data);
+
+    console.log(imageDataset);
+
+    drawLoop(imageDataset);
   });
 
-  reader.readAsArrayBuffer(file);
+  reader.readAsText(file);
 }
 
-let img_number = 0;
+let img_number = 9;
 const image_length = 784; //28*28;
 const header_length = 80;
 
-function drawLoop() {
+function drawLoop(imageDataset) {
   console.log(img_number);
-  const image = uint8View.slice(
-    header_length + img_number * image_length,
-    header_length + image_length + img_number * image_length
-  );
+  // const image = uint8View.slice(
+  //   header_length + img_number * image_length,
+  //   header_length + image_length + img_number * image_length
+  // );
+
+  let data = imageDataset.getData();
+
+  const image = data[img_number].data;
 
   draw(image);
   img_number++;
