@@ -1,3 +1,6 @@
+import { createImageDataset } from '../Dataset.js';
+import Utils from '../../../../Utils.js';
+
 const canvas = document.getElementById('canvas');
 const width = (canvas.width = 280);
 const height = (canvas.height = 280);
@@ -13,11 +16,14 @@ function handleFileSelect_load(evt) {
   const file = evt.target.files[0];
   const reader = new FileReader();
   reader.addEventListener('load', (event) => {
-    console.log(event.target);
-    let arrayBuffer = event.target.result;
-    uint8View = new Uint8Array(arrayBuffer);
-    // console.log((uint8View.length - header_length) / image_length);
-    setInterval(drawLoop, 500);
+    const res = event.target.result;
+    const textByLine = res.split('\n');
+    const data = JSON.parse(textByLine);
+    const imageDataset = createImageDataset();
+    imageDataset.clearData();
+    imageDataset.setData(data);
+
+    setInterval(drawLoop(imageDataset), 500);
   });
 
   reader.readAsText(file);

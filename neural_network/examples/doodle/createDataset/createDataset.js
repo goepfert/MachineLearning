@@ -7,9 +7,9 @@ import { createImageDataset } from '../Dataset.js';
 const App = (() => {
   const header_length = 80;
   const image_length = 784; //28*28;
-  const nImages = 10;
+  const nImages = 100;
 
-  let label = 'kaktus';
+  let label = 'cat';
   let uint8View;
 
   function init() {
@@ -47,9 +47,10 @@ const App = (() => {
         header_length + imgIdx * image_length,
         header_length + image_length + imgIdx * image_length
       );
-
-      imageDataset.addData(image, label);
+      imageDataset.addData(Array.from(image), label);
     }
+
+    // console.log(imageDataset.getData());
     imageDataset.saveData('test');
   }
 

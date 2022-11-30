@@ -35,7 +35,7 @@ let count = 0;
 let training_data;
 let training_data_length;
 
-var loss_div = document.getElementById('loss_div');
+let loss_div = document.getElementById('loss_div');
 let loss_data = [[0, 0]];
 let data_counter = 0;
 let loss_graph = new Dygraph(loss_div, loss_data, {
