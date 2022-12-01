@@ -8,24 +8,33 @@ const App = (() => {
   const context = canvas.getContext('2d');
 
   const grid = 10;
-  const nCols = width / grid;
+  const nCols = width / grid; // shall be 28
   const nRows = height / grid;
 
-  const nClasses = 3; // HARD CODED
-
+  const nClasses = 10; // HARD CODED
   const Labels = {
     apple: 0,
     banana: 1,
     cat: 2,
+    clock: 3,
+    fish: 4,
+    icecream: 5,
+    lightbulb: 6,
+    mouth: 7,
+    smiley: 8,
+    tornado: 9,
   };
+
   let combinedData = [];
 
+  // - Network -------------------------------------------------------------
   let nn;
-  const learningRate = 0.01;
+  const learningRate = 0.05;
+  const batch_iterations = 10000;
+  const iterations_per_draw_cycle = 1000;
+  const n_loss_sample = 100;
 
-  const batch_iterations = 5000;
-  const iterations_per_draw_cycle = 100;
-
+  // - Graph ---------------------------------------------------------------
   let loss_div = document.getElementById('loss_div');
   let loss_data = [[0, 0]];
   let data_counter = 0;
@@ -38,6 +47,13 @@ const App = (() => {
 
   function init() {
     document.getElementById('file-load').addEventListener('change', handleFileSelect_load, false);
+  }
+
+  function oneHot(label) {
+    let target = new Array(nClasses).fill(0);
+    let pos = Labels[label];
+    target[pos] = 1;
+    return target;
   }
 
   async function handleFileSelect_load(evt) {
@@ -80,31 +96,41 @@ const App = (() => {
     train();
   }
 
-  function oneHot(label) {
-    let target = new Array(nClasses).fill(0);
-    let pos = Labels[label];
-    target[pos] = 1;
-
-    return target;
-  }
-
   function train() {
-    nn = new NeuralNetwork(784, 64, nClasses);
+    nn = new NeuralNetwork(784, 196, nClasses);
     nn.setLearningRate(learningRate);
 
-    for (let batchIdx = 0; batchIdx < batch_iterations; batchIdx++) {
-      let loss = 0;
+    let batchIdx = 0;
+    let batch_loss = 0;
+    function iterateBatch() {
+      batchIdx++;
+      let image;
+      let label;
+
+      // Train batch
       for (let i = 0; i < iterations_per_draw_cycle; i++) {
         //pick random data
         let randomIdx = Math.floor(Math.random() * combinedData.length);
 
         let data = combinedData[randomIdx];
-        let label = data.label;
-        let image = data.data;
+        label = data.label;
+        image = data.data;
 
         //oneHot
         let target = oneHot(label);
         nn.train(image, target);
+      }
+
+      // Calculate Loss in Sub Batch
+      let loss = 0;
+      for (let i = 0; i < n_loss_sample; i++) {
+        let randomIdx = Math.floor(Math.random() * combinedData.length);
+        let data = combinedData[randomIdx];
+        label = data.label;
+        image = data.data;
+
+        //oneHot
+        let target = oneHot(label);
 
         const output = nn.predict(image);
         let error = 0;
@@ -114,14 +140,33 @@ const App = (() => {
         }
         loss += 0.5 * error;
       }
-
-      loss /= iterations_per_draw_cycle;
+      loss /= n_loss_sample;
       console.log('loss', data_counter, loss);
       loss_data.push([data_counter++, loss]);
-      loss_graph.updateOptions({ file: loss_data });
-    }
+      draw(image);
 
-    console.log('training finished');
+      if (batchIdx > batch_iterations) {
+        console.log('training finished');
+        Utils.download(nn.serialize(), '10_100_nn_xyz.net');
+        return;
+      } else {
+        window.requestAnimationFrame(iterateBatch);
+      }
+    }
+    window.requestAnimationFrame(iterateBatch);
+  }
+
+  function draw(image) {
+    loss_graph.updateOptions({ file: loss_data });
+
+    for (let row_idx = 0; row_idx < nRows; row_idx++) {
+      for (let col_idx = 0; col_idx < nCols; col_idx++) {
+        let color = image[col_idx + row_idx * nCols];
+        //   console.log(col_idx, row_idx, col_idx + row_idx * nCols, color);
+        context.fillStyle = `rgb(${color}, ${color}, ${color})`;
+        context.fillRect(col_idx * grid, row_idx * grid, grid, grid);
+      }
+    }
   }
 
   return {

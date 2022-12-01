@@ -9,7 +9,7 @@ const App = (() => {
   const image_length = 784; //28*28;
   const nImages = 100;
 
-  let label = 'cat';
+  let label = 'tornado';
   let uint8View;
 
   function init() {

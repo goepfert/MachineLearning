@@ -38,3 +38,26 @@ console.log(nn.predict([0, 0]));
 console.log(nn.predict([1, 0]));
 console.log(nn.predict([0, 1]));
 console.log(nn.predict([1, 1]));
+
+// saving
+Utils.download(nn.serialize(), 'nn_1');
+
+// load
+document.getElementById('file-load').addEventListener('change', handleFileSelect_load, false);
+function handleFileSelect_load(evt) {
+  const file = evt.target.files[0];
+  const reader = new FileReader();
+  reader.addEventListener('load', (event) => {
+    console.log(event.target.result);
+
+    let loadedNN = NeuralNetwork.deserialize(event.target.result);
+
+    console.log('--------');
+    console.log(loadedNN.predict([0, 0]));
+    console.log(loadedNN.predict([1, 0]));
+    console.log(loadedNN.predict([0, 1]));
+    console.log(loadedNN.predict([1, 1]));
+  });
+
+  reader.readAsText(file);
+}
