@@ -1,6 +1,7 @@
 import { createImageDataset } from './Dataset.js';
 import NeuralNetwork from '../../lib/NeuralNetwork.js';
 import Utils from '../../../Utils.js';
+import { Labels, numberOfLables } from './Labels.js';
 
 const App = (() => {
   const canvas = document.getElementById('canvas');
@@ -15,9 +16,9 @@ const App = (() => {
   // - Network -------------------------------------------------------------
   let nn;
   const learningRate = 0.02;
-  const batch_iterations = 1000;
-  const iterations_per_draw_cycle = 500;
-  const n_loss_sample = 50;
+  const batch_iterations = 500;
+  const iterations_per_draw_cycle = 280;
+  const n_loss_sample = 100;
 
   // - Graph ---------------------------------------------------------------
   let loss_div = document.getElementById('loss_div');
@@ -31,21 +32,7 @@ const App = (() => {
   });
 
   // - Image ---------------------------------------------------------------
-  const nClasses = 11; // HARD CODED
-  const Labels = {
-    apple: 0,
-    banana: 1,
-    cat: 2,
-    clock: 3,
-    fish: 4,
-    icecream: 5,
-    lightbulb: 6,
-    mouth: 7,
-    smiley: 8,
-    tornado: 9,
-    flower: 10,
-  };
-
+  const nClasses = numberOfLables; // HARD CODED
   let combinedData = [];
   let currentData;
 
@@ -57,13 +44,17 @@ const App = (() => {
     document.getElementById('file-load-dataset').addEventListener('change', handleFileSelect_load_dataset, false);
     document.getElementById('train-btn').addEventListener('click', train, false);
     document.getElementById('file-load-network').addEventListener('change', handleFileSelect_load_network, false);
-    document.getElementById('load-img-btn').addEventListener('click', loadRandomImage, false);
+    document.getElementById('test-accuracy-btn').addEventListener('click', testAccuray, false);
+    document.getElementById('load-img-btn').addEventListener('click', loadAndDrawRandomImage, false);
     document.getElementById('clear-btn').addEventListener('click', clearCanvas, false);
     document.getElementById('predict-btn').addEventListener('click', predict, false);
     document.addEventListener('mousedown', startDrawing);
     document.addEventListener('mouseup', stopDrawing);
 
     clearCanvas();
+
+    nn = new NeuralNetwork(784, 196, nClasses);
+    nn.setLearningRate(learningRate);
   }
 
   function clearCanvas() {
@@ -79,7 +70,7 @@ const App = (() => {
     return target;
   }
 
-  function loadRandomImage() {
+  function loadAndDrawRandomImage() {
     Utils.assert(combinedData.length > 0, 'no data loaded');
     let randomIdx = Math.floor(Math.random() * combinedData.length);
     currentData = combinedData[randomIdx];
@@ -127,8 +118,6 @@ const App = (() => {
     });
     // console.log(combinedData);
     console.log('all files loaded successfully, ready for training');
-
-    // train();
   }
 
   function handleFileSelect_load_network(evt) {
@@ -172,11 +161,34 @@ const App = (() => {
     }
   }
 
-  function train() {
+  function testAccuray() {
     Utils.assert(combinedData.length > 0, 'no data loaded');
 
-    nn = new NeuralNetwork(784, 196, nClasses);
-    nn.setLearningRate(learningRate);
+    const nTotal = 100;
+    let correct = 0;
+
+    for (let i = 0; i < nTotal; i++) {
+      //pick random data
+      let randomIdx = Math.floor(Math.random() * combinedData.length);
+
+      let data = combinedData[randomIdx];
+      const label = data.label;
+      let image = data.data;
+
+      const output = nn.predict(image);
+      const maxIdx = output.indexOf(Math.max(...output));
+      const key = Object.keys(Labels)[maxIdx];
+
+      if (key == label) {
+        correct++;
+      }
+    }
+
+    console.log('test accuracy: ', correct / nTotal);
+  }
+
+  function train() {
+    Utils.assert(combinedData.length > 0, 'no data loaded');
 
     let batchIdx = 0;
     function iterateBatch() {
