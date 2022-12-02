@@ -15,6 +15,6 @@ const Labels = {
   tornado: 13,
 };
 
-const numberOfLables = Object.keys(Labels).length;
+const numberOfLabels = Object.keys(Labels).length;
 
-export { Labels, numberOfLables };
+export { Labels, numberOfLabels };
