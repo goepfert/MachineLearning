@@ -16,8 +16,8 @@ const App = (() => {
   // - Network -------------------------------------------------------------
   let nn;
   const learningRate = 0.02;
-  const batch_iterations = 500;
-  const iterations_per_draw_cycle = 280;
+  const batch_iterations = 1000;
+  const iterations_per_draw_cycle = 500;
   const n_loss_sample = 100;
 
   // - Graph ---------------------------------------------------------------
