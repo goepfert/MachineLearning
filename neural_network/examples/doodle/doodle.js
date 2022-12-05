@@ -1,7 +1,7 @@
 import { createImageDataset } from './Dataset.js';
 import NeuralNetwork from '../../lib/NeuralNetwork.js';
 import Utils from '../../../Utils.js';
-import { Labels, numberOfLables } from './Labels.js';
+import { Labels, numberOfLabels } from './Labels.js';
 
 const App = (() => {
   const canvas = document.getElementById('canvas');
@@ -16,8 +16,8 @@ const App = (() => {
   // - Network -------------------------------------------------------------
   let nn;
   const learningRate = 0.02;
-  const batch_iterations = 1000;
-  const iterations_per_draw_cycle = 500;
+  const batch_iterations = 500;
+  const iterations_per_draw_cycle = 300;
   const n_loss_sample = 100;
 
   // - Graph ---------------------------------------------------------------
@@ -32,7 +32,7 @@ const App = (() => {
   });
 
   // - Image ---------------------------------------------------------------
-  const nClasses = numberOfLables; // HARD CODED
+  const nClasses = numberOfLabels; // HARD CODED
   let combinedData = [];
   let currentData;
 
@@ -44,7 +44,7 @@ const App = (() => {
     document.getElementById('file-load-dataset').addEventListener('change', handleFileSelect_load_dataset, false);
     document.getElementById('train-btn').addEventListener('click', train, false);
     document.getElementById('file-load-network').addEventListener('change', handleFileSelect_load_network, false);
-    document.getElementById('test-accuracy-btn').addEventListener('click', testAccuray, false);
+    document.getElementById('test-accuracy-btn').addEventListener('click', testAccuracy, false);
     document.getElementById('load-img-btn').addEventListener('click', loadAndDrawRandomImage, false);
     document.getElementById('clear-btn').addEventListener('click', clearCanvas, false);
     document.getElementById('predict-btn').addEventListener('click', predict, false);
@@ -63,6 +63,9 @@ const App = (() => {
     predictFromDrawing = true;
   }
 
+  /**
+   * Returns an array of Zeros except there is a one at the position of the given label
+   */
   function oneHot(label) {
     let target = new Array(nClasses).fill(0);
     let pos = Labels[label];
@@ -161,7 +164,7 @@ const App = (() => {
     }
   }
 
-  function testAccuray() {
+  function testAccuracy() {
     Utils.assert(combinedData.length > 0, 'no data loaded');
 
     const nTotal = 100;
