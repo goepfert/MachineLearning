@@ -8,17 +8,13 @@
     <title>Document</title>
   </head>
   <body>
+    <h1>Filteridoodle</h1>
     <div class="container">
       <div class="row">
-        <label for="file-load-dataset" class="button">Load Datasets</label>
-        <input type="file" id="file-load-dataset" accept="*.data" multiple style="display: none" />
-        <!-- <span id="filename">no file selected ...</span> -->
-
-        <dic class="button" id="load-img-btn">Load Random Image</dic>
-        <dic class="button" id="clear-btn">Clear</dic>
-        <dic class="button" id="predict-btn">Predict</dic>
-      </div>
-      <div class="row">
+        <div class="dropdown">
+          <input class="text-box" type="text" placeholder="Filtertype" readonly />
+          <div class="options"></div>
+        </div>
         <canvas id="canvas"></canvas>
         <canvas id="canvas_output"></canvas>
       </div>
