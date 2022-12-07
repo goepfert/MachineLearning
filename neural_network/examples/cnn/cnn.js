@@ -43,10 +43,27 @@ function drawConvImage(image, filter) {
     return Utils.map(pixel, 0, 255, 255, 0);
   });
 
+  // Eieiei, I'm so proud of myself :(
+  let min = 255;
+  let max = -255;
   for (let row_idx = 1; row_idx < nRows - 1; row_idx++) {
     for (let col_idx = 1; col_idx < nCols - 1; col_idx++) {
       let color = conv(image, col_idx, row_idx, filter);
-      // console.log(col_idx, row_idx, col_idx + row_idx * nCols, color);
+
+      if (color < min) {
+        min = color;
+      }
+      if (color > max) {
+        max = color;
+      }
+    }
+  }
+
+  for (let row_idx = 1; row_idx < nRows - 1; row_idx++) {
+    for (let col_idx = 1; col_idx < nCols - 1; col_idx++) {
+      let color = conv(image, col_idx, row_idx, filter);
+      color = Math.floor(Utils.map(color, min, max, 0, 255));
+      // console.log(col_idx, row_idx, color);
       context_output.fillStyle = `rgb(${color}, ${color}, ${color})`;
       context_output.fillRect(col_idx * grid, row_idx * grid, grid, grid);
     }

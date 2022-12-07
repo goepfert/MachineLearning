@@ -1,3 +1,4 @@
+// https://en.wikipedia.org/wiki/Kernel_(image_processing)
 const Filters = {
   random: () => {
     let filter = [
@@ -40,6 +41,11 @@ const Filters = {
     [-1, -2, -1],
     [0, 0, 0],
     [1, 2, 1],
+  ],
+  ridge: [
+    [-1, -1, -1],
+    [-1, 8, -1],
+    [-1, -1, -1],
   ],
 };
 
