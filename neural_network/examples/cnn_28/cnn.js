@@ -1,9 +1,10 @@
 import Utils from '../../../Utils.js';
+import { Cat_image } from './Cat.js';
 import { Filters } from './Filters.js';
 
 const canvas = document.getElementById('canvas');
-const width = (canvas.width = 1280 / 2);
-const height = (canvas.height = 720 / 2);
+const width = (canvas.width = 280);
+const height = (canvas.height = 280);
 const context = canvas.getContext('2d');
 
 const canvas_output = document.getElementById('canvas_output');
@@ -11,34 +12,21 @@ canvas_output.width = canvas.width;
 canvas_output.height = canvas.height;
 const context_output = canvas_output.getContext('2d');
 
-const grid = 1;
-const nCols = width / grid;
+const grid = 10;
+const nCols = width / grid; // shall be 28
 const nRows = height / grid;
 
-let image_org = new Image();
-image_org.src = 'images/griswolds.jpg';
-
-let image = [];
+let image = Cat_image;
 
 function clearCanvas() {
   context.fillStyle = 'White';
   context.fillRect(0, 0, width, height);
 }
 
-function draw() {
-  context.drawImage(image_org, 0, 0, width, height);
-
-  const imageData = context.getImageData(0, 0, width, height);
-  const data = Array.from(imageData.data);
-  console.log(data);
-
-  for (let pos = 0; pos < data.length; ) {
-    let color = (data[pos++] + data[pos++] + data[pos++]) / 3;
-    pos++;
-    image.push(color);
-  }
-
-  clearCanvas();
+function draw(image) {
+  image = image.map((pixel) => {
+    return Utils.map(pixel, 0, 255, 255, 0);
+  });
 
   for (let row_idx = 0; row_idx < nRows; row_idx++) {
     for (let col_idx = 0; col_idx < nCols; col_idx++) {
@@ -51,11 +39,9 @@ function draw() {
 }
 
 function drawConvImage(image, filter) {
-  // image = image.map((pixel) => {
-  //   return Utils.map(pixel, 0, 255, 255, 0);
-  // });
-
-  if(filter == )
+  image = image.map((pixel) => {
+    return Utils.map(pixel, 0, 255, 255, 0);
+  });
 
   // Eieiei, I'm so proud of myself :(
   let min = 255;
@@ -77,7 +63,6 @@ function drawConvImage(image, filter) {
     for (let col_idx = 1; col_idx < nCols - 1; col_idx++) {
       let color = conv(image, col_idx, row_idx, filter);
       color = Math.floor(Utils.map(color, min, max, 0, 255));
-      //color = Math.floor(Utils.constrain(color, 0, 255));
       // console.log(col_idx, row_idx, color);
       context_output.fillStyle = `rgb(${color}, ${color}, ${color})`;
       context_output.fillRect(col_idx * grid, row_idx * grid, grid, grid);
@@ -123,7 +108,5 @@ dropdown.onclick = function () {
   dropdown.classList.toggle('active');
 };
 
-window.onload = () => {
-  clearCanvas();
-  draw();
-};
+clearCanvas();
+draw(image);
