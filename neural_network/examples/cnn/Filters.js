@@ -6,20 +6,11 @@ const Filters = {
       [0, 0, 0],
       [0, 0, 0],
     ];
-    let sum = 0;
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 3; j++) {
-        filter[j][i] = Math.random() * 2 - 1;
-        sum += filter[j][i];
+        filter[j][i] = Math.random() * 4 - 2;
       }
     }
-
-    for (let i = 0; i < 3; i++) {
-      for (let j = 0; j < 3; j++) {
-        filter[j][i] *= 1 / sum;
-      }
-    }
-
     return filter;
   },
   blur: [

@@ -1,48 +1,69 @@
 import Utils from '../../../Utils.js';
 import { Filters } from './Filters.js';
 
-const canvas = document.getElementById('canvas');
-const width = (canvas.width = 1280 / 2);
-const height = (canvas.height = 720 / 2);
-const context = canvas.getContext('2d');
+// Griswolds image size
+// const width = (canvas.width = 1280 / 2);
+// const height = (canvas.height = 720 / 2);
 
-const canvas_output = document.getElementById('canvas_output');
-canvas_output.width = canvas.width;
-canvas_output.height = canvas.height;
-const context_output = canvas_output.getContext('2d');
+// TODO: Size should come from image
+const canvas = document.getElementById('canvas');
+const width = (canvas.width = 480);
+const height = (canvas.height = 480);
+const context = canvas.getContext('2d');
 
 const grid = 1;
 const nCols = width / grid;
 const nRows = height / grid;
 
-let image_org = new Image();
-image_org.src = 'images/griswolds.jpg';
+const canvas_filter_1 = document.getElementById('canvas_filter_1');
+canvas_filter_1s_output.width = canvas.width;
+canvas_filter_1.height = canvas.height;
+const context_filter_1 = canvas_filter_1.getContext('2d');
 
-let image = [];
+let image = new Image();
+// image.src = 'images/griswolds.jpg';
+image.src = 'images/pattern_1.png';
+// image_org.src = 'images/pattern_2.png';
+
+let image_org = [];
+
+function setup() {
+  // Maybe another dropdown
+  // image_org.src = 'images/griswolds.jpg';
+  image.src = 'images/pattern_1.png';
+  // image_org.src = 'images/pattern_2.png';
+
+  image_org = [];
+
+  clearCanvas();
+}
 
 function clearCanvas() {
   context.fillStyle = 'White';
   context.fillRect(0, 0, width, height);
+
+  context_filter_1.fillStyle = context.fillStyle;
+  context_filter_1.fillRect(0, 0, width, height);
 }
 
 function draw() {
   context.drawImage(image_org, 0, 0, width, height);
 
+  // Draw original image, Convert to grayscale array and draw again
   const imageData = context.getImageData(0, 0, width, height);
   const data = Array.from(imageData.data);
-  console.log(data);
 
   for (let pos = 0; pos < data.length; ) {
     let color = (data[pos++] + data[pos++] + data[pos++]) / 3;
     pos++;
-    image.push(color);
+    image_org.push(color);
   }
 
   clearCanvas();
 
   for (let row_idx = 0; row_idx < nRows; row_idx++) {
     for (let col_idx = 0; col_idx < nCols; col_idx++) {
-      let color = image[col_idx + row_idx * nCols];
+      let color = image_org[col_idx + row_idx * nCols];
       //   console.log(col_idx, row_idx, col_idx + row_idx * nCols, color);
       context.fillStyle = `rgb(${color}, ${color}, ${color})`;
       context.fillRect(col_idx * grid, row_idx * grid, grid, grid);
@@ -50,19 +71,21 @@ function draw() {
   }
 }
 
-function drawConvImage(image, filter) {
-  // image = image.map((pixel) => {
-  //   return Utils.map(pixel, 0, 255, 255, 0);
-  // });
+function drawConvImage(image, context, padding, filter) {
+  let kernel;
 
-  if(filter == )
+  if (typeof Filters[filter] == 'function') {
+    kernel = Filters[filter]();
+  } else {
+    kernel = Filters[filter];
+  }
 
   // Eieiei, I'm so proud of myself :(
   let min = 255;
   let max = -255;
-  for (let row_idx = 1; row_idx < nRows - 1; row_idx++) {
-    for (let col_idx = 1; col_idx < nCols - 1; col_idx++) {
-      let color = conv(image, col_idx, row_idx, filter);
+  for (let row_idx = padding; row_idx < nRows - padding; row_idx++) {
+    for (let col_idx = padding; col_idx < nCols - padding; col_idx++) {
+      let color = convolve(image, col_idx, row_idx, kernel);
 
       if (color < min) {
         min = color;
@@ -73,19 +96,21 @@ function drawConvImage(image, filter) {
     }
   }
 
-  for (let row_idx = 1; row_idx < nRows - 1; row_idx++) {
-    for (let col_idx = 1; col_idx < nCols - 1; col_idx++) {
-      let color = conv(image, col_idx, row_idx, filter);
-      color = Math.floor(Utils.map(color, min, max, 0, 255));
-      //color = Math.floor(Utils.constrain(color, 0, 255));
+  for (let row_idx = padding; row_idx < nRows - padding; row_idx++) {
+    for (let col_idx = padding; col_idx < nCols - padding; col_idx++) {
+      let color = convolve(image, col_idx, row_idx, kernel);
+      if (filter != 'sharpening' && filter != 'ridge') {
+        color = Math.floor(Utils.map(color, min, max, 0, 255));
+      }
+      color = Math.floor(Utils.constrain(color, 0, 255));
       // console.log(col_idx, row_idx, color);
-      context_output.fillStyle = `rgb(${color}, ${color}, ${color})`;
-      context_output.fillRect(col_idx * grid, row_idx * grid, grid, grid);
+      context.fillStyle = `rgb(${color}, ${color}, ${color})`;
+      context.fillRect(col_idx * grid, row_idx * grid, grid, grid);
     }
   }
 }
 
-function conv(image, col_idx, row_idx, filter) {
+function convolve(image, col_idx, row_idx, filter) {
   let filtered_color = 0;
   for (let f_row_idx = -1; f_row_idx <= 1; f_row_idx++) {
     for (let f_col_idx = -1; f_col_idx <= 1; f_col_idx++) {
@@ -105,11 +130,7 @@ for (const filter in Filters) {
   div_element.innerHTML = filter;
   div_element.onclick = () => {
     show(filter);
-    if (typeof Filters[filter] == 'function') {
-      drawConvImage(image, Filters[filter]());
-    } else {
-      drawConvImage(image, Filters[filter]);
-    }
+    drawConvImage(image, filter);
   };
   div.appendChild(div_element);
 }
@@ -124,6 +145,6 @@ dropdown.onclick = function () {
 };
 
 window.onload = () => {
-  clearCanvas();
+  setup();
   draw();
 };
