@@ -16,9 +16,17 @@ const nCols = width / grid;
 const nRows = height / grid;
 
 const canvas_filter_1 = document.getElementById('canvas_filter_1');
-canvas_filter_1s_output.width = canvas.width;
-canvas_filter_1.height = canvas.height;
+canvas_filter_1.width = width;
+canvas_filter_1.height = height;
 const context_filter_1 = canvas_filter_1.getContext('2d');
+
+// 2x2 pooling, stride 2
+const canvas_pooling_1 = document.getElementById('canvas_pooling_1');
+canvas_pooling_1.width = width / 2;
+canvas_pooling_1.height = height / 2;
+const context_pooing_1 = canvas_pooling_1.getContext('2d');
+
+const canvasArray = [canvas, canvas_filter_1, canvas_pooling_1];
 
 let image = new Image();
 // image.src = 'images/griswolds.jpg';
@@ -26,6 +34,18 @@ image.src = 'images/pattern_1.png';
 // image_org.src = 'images/pattern_2.png';
 
 let image_org = [];
+
+function clearCanvas(_canvas) {
+  const _context = _canvas.getContext('2d');
+  _context.fillStyle = 'White';
+  _context.fillRect(0, 0, _canvas.width, _canvas.height);
+}
+
+function clearAllCanvas() {
+  canvasArray.map((canvas) => {
+    clearCanvas(canvas);
+  });
+}
 
 function setup() {
   // Maybe another dropdown
@@ -35,31 +55,21 @@ function setup() {
 
   image_org = [];
 
-  clearCanvas();
+  clearAllCanvas();
 }
 
-function clearCanvas() {
-  context.fillStyle = 'White';
-  context.fillRect(0, 0, width, height);
-
-  context_filter_1.fillStyle = context.fillStyle;
-  context_filter_1.fillRect(0, 0, width, height);
-}
-
+// Draw original image, Convert to grayscale array and draw again
 function draw() {
-  context.drawImage(image_org, 0, 0, width, height);
-
-  // Draw original image, Convert to grayscale array and draw again
+  context.drawImage(image, 0, 0, width, height);
   const imageData = context.getImageData(0, 0, width, height);
   const data = Array.from(imageData.data);
-
   for (let pos = 0; pos < data.length; ) {
     let color = (data[pos++] + data[pos++] + data[pos++]) / 3;
     pos++;
     image_org.push(color);
   }
 
-  clearCanvas();
+  clearCanvas(canvas);
 
   for (let row_idx = 0; row_idx < nRows; row_idx++) {
     for (let col_idx = 0; col_idx < nCols; col_idx++) {
@@ -96,8 +106,8 @@ function drawConvImage(image, context, padding, filter) {
     }
   }
 
-  for (let row_idx = padding; row_idx < nRows - padding; row_idx++) {
-    for (let col_idx = padding; col_idx < nCols - padding; col_idx++) {
+  for (let row_idx = padding; row_idx < nRows; row_idx++) {
+    for (let col_idx = padding; col_idx < nCols; col_idx++) {
       let color = convolve(image, col_idx, row_idx, kernel);
       if (filter != 'sharpening' && filter != 'ridge') {
         color = Math.floor(Utils.map(color, min, max, 0, 255));
@@ -114,8 +124,12 @@ function convolve(image, col_idx, row_idx, filter) {
   let filtered_color = 0;
   for (let f_row_idx = -1; f_row_idx <= 1; f_row_idx++) {
     for (let f_col_idx = -1; f_col_idx <= 1; f_col_idx++) {
+
       let pixel_x = col_idx + f_col_idx;
       let pixel_y = row_idx + f_row_idx;
+
+      if(pi)
+
       let index = pixel_x + pixel_y * nCols;
       filtered_color += filter[f_row_idx + 1][f_col_idx + 1] * image[index];
     }
