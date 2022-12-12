@@ -23,16 +23,3 @@ Further processing (more layers) doesn't make much sense here because it would r
 - How to deal with bias parameters???
 
 If you are interested in more/better visualizations than search for _cnn feature map visualization_ or similar.
-
-## Resources
-
-For the record:
-
-- [A guide to convolution arithmetic for deep learning](https://github.com/vdumoulin/conv_arithmetic)
-  - Simple example with nice animations
-  - Good explanations of stride and paddings
-  - Show options for de-convolution
-- [Machine Learning - Convolution with color images](https://dev.to/sandeepbalachandran/machine-learning-convolution-with-color-images-2p41)
-  - In depth example of convolution of a rgb image
-- [All Convolution Animations Are Wrong (Neural Networks)](https://www.youtube.com/watch?v=w4kNHKcBGzA&ab_channel=AnimatedAI)
-  - Hate this US style arrogance, but nice animations
