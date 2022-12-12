@@ -21,7 +21,7 @@ const context_filter_1 = canvas_filter_1.getContext('2d');
 
 // poolsize = ps
 // ps x ps pooling, stride ps
-const ps = 6;
+const ps = 4;
 const canvas_pooling_1 = document.getElementById('canvas_pooling_1');
 canvas_pooling_1.width = width;
 canvas_pooling_1.height = height;
@@ -51,7 +51,8 @@ function setup() {
   image = new Image();
   // image.src = 'images/griswolds.jpg';
   image.src = 'images/pattern_1.png';
-  //image.src = 'images/pattern_2.png';
+  // image.src = 'images/pattern_2.png';
+  // image.src = 'images/testimage.png';
 
   clearAllCanvas();
 }
