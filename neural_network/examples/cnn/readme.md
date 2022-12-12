@@ -18,8 +18,8 @@ Apply a max pooling layer on this conv2d output
 
 Further processing (more layers) doesn't make much sense here because it would require to much work to mimic a real convolutional layer.
 
-- decouple output data from image data (only map or constrain image data)
-- I think there is a activation layer between convolution and pooling
+- Decouple output data from image data (only map or constrain image data)
+- Implement activation layer between convolution and pooling
 - How to deal with bias parameters???
 
 If you are interested in more/better visualizations than search for _cnn feature map visualization_ or similar.
