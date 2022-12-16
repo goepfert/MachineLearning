@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./style.css" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <label for="file-load-dataset" class="button">Load Datasets</label>
+        <input type="file" id="file-load-dataset" accept="*.data" multiple style="display: none" />
+        <!-- <span id="filename">no file selected ...</span> -->
+
+        <div class="button" id="train-btn">Train</div>
+
+        <label for="file-load-network" class="button">Load Network</label>
+        <input type="file" id="file-load-network" accept="*.data" multiple style="display: none" />
+        <!-- <span id="filename">no file selected ...</span> -->
+
+        <div class="button" id="test-accuracy-btn">Test Accuracy</div>
+
+        <div class="button" id="load-img-btn">Load Random Image</div>
+        <div class="button" id="clear-btn">Clear</div>
+        <div class="button" id="predict-btn">Predict</div>
+      </div>
+      <div class="row">
+        <canvas id="canvas"></canvas>
+        <div id="loss_div" style="width: 600px; height: 300px"></div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis@1.0.2/dist/tfjs-vis.umd.min.js"></script>
+    <script src="./doodle.js" type="module"></script>
+  </body>
+</html>

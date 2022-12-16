@@ -1,3 +1,10 @@
+/**
+ * Uses the Core minimizer to optimize the variables of a straight line to match the input data
+ *
+ * More extensive example using a real NN -> https://codelabs.developers.google.com/codelabs/tfjs-training-regression/index.html#0
+ *   - one input, one dense layer with one node, one output -> looks like a perceptron
+ */
+
 import Utils from '../../../Utils.js';
 
 const canvas = document.getElementById('canvas');
@@ -9,14 +16,14 @@ let ID;
 const drawTimeout_ms = 0;
 
 let coord = { x: 0, y: 0 };
-let x_vals = [];
-let y_vals = [];
+let xInputs = [];
+let yInputs = [];
 
 let m;
 let n;
 
 const learningRate = 0.5;
-const max_iterations = 10000;
+const max_iterations = 1000;
 let count = 0;
 const optimizer = tf.train.sgd(learningRate);
 
@@ -31,7 +38,7 @@ function reposition(event) {
 }
 
 /**
- * Add coordinats of mouse click into array
+ * Add coordinates of mouse click into array
  */
 function mousePressed(event) {
   reposition(event);
@@ -45,8 +52,8 @@ function mousePressed(event) {
     return;
   }
 
-  x_vals.push(x);
-  y_vals.push(y);
+  xInputs.push(x);
+  yInputs.push(y);
 }
 
 /**
@@ -68,6 +75,13 @@ function predict(x) {
   return ys;
 }
 
+function predictSingle(x) {
+  const xs = tf.scalar(x);
+  // y = mx + n;
+  const ys = xs.mul(m).add(n);
+  return ys;
+}
+
 /**
  * Called once at the beginning
  */
@@ -84,46 +98,51 @@ function setup() {
  * Called repeatedly
  */
 function draw() {
+  // Use minimizer to fit lien to data
   tf.tidy(() => {
-    if (x_vals.length > 0) {
-      const ys = tf.tensor1d(y_vals);
-      optimizer.minimize(() => loss(predict(x_vals), ys));
+    if (xInputs.length > 0) {
+      const ys = tf.tensor1d(yInputs);
+      optimizer.minimize(() => loss(predict(xInputs), ys));
     }
   });
 
   clearCanvas();
 
-  for (let i = 0; i < x_vals.length; i++) {
-    let px = Utils.map(x_vals[i], 0, 1, 0, width);
-    let py = Utils.map(y_vals[i], 0, 1, height, 0);
+  // Draw Inputs
+  for (let i = 0; i < xInputs.length; i++) {
+    let px = Utils.map(xInputs[i], 0, 1, 0, width);
+    let py = Utils.map(yInputs[i], 0, 1, height, 0);
 
     Utils.drawCircle(context, px, py, 5, 5);
   }
 
+  // Draw estimate
   const lineX = [0, 1];
+  // const ys = tf.tidy(() => predict(lineX));
+  // let lineY = ys.dataSync();
+  // ys.dispose();
 
-  const ys = tf.tidy(() => predict(lineX));
-  let lineY = ys.dataSync();
-  ys.dispose();
+  const lineY = [0, 0];
+
+  lineY[0] = tf.tidy(() => predictSingle(lineX[0]).dataSync());
+  lineY[1] = tf.tidy(() => predictSingle(lineX[1]).dataSync());
 
   let x1 = Utils.map(lineX[0], 0, 1, 0, width);
   let x2 = Utils.map(lineX[1], 0, 1, 0, width);
-
   let y1 = Utils.map(lineY[0], 0, 1, height, 0);
   let y2 = Utils.map(lineY[1], 0, 1, height, 0);
 
   Utils.drawLine(context, x1, y1, x2, y2);
 
   // Simply stop
-  if (count >= max_iterations) {
+  if (count++ >= max_iterations) {
     clearInterval(ID);
   }
-
-  count++;
 }
 
 // Kick off
 window.onload = () => {
   setup();
   ID = setInterval(draw, drawTimeout_ms);
+  //draw();
 };

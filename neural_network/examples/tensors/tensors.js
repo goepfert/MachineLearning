@@ -1,3 +1,7 @@
+/**
+ *
+ */
+
 const row_1 = [1, 2, 3];
 const row_2 = [4, 5, 6];
 
@@ -26,9 +30,9 @@ const a = tf.tensor(array2d_1);
 // a.print();
 
 // Creating a 2d Tensor from flat array
-const b = tf.tensor([1, 2, 3, 4, 5, 6], [2, 3]);
+const b = tf.tensor([1.1, 2.9, 3, 4, 5, 6], [2, 3], 'int32');
 // console.log('shape:', b.shape);
-// b.print();
+b.print();
 
 // ----- more on shapes --------------------------------
 
