@@ -15,9 +15,8 @@ const App = (() => {
 
   // - Network -------------------------------------------------------------
   let nn;
-  const batch_iterations = 500;
-  const iterations_per_draw_cycle = 300;
-  const n_loss_sample = 100;
+  let model;
+  let trained = false;
 
   // - Image ---------------------------------------------------------------
   const nClasses = numberOfLabels; // HARD CODED
@@ -32,7 +31,7 @@ const App = (() => {
     document.getElementById('file-load-dataset').addEventListener('change', handleFileSelect_load_dataset, false);
     document.getElementById('train-btn').addEventListener('click', train, false);
     document.getElementById('file-load-network').addEventListener('change', handleFileSelect_load_network, false);
-    document.getElementById('test-accuracy-btn').addEventListener('click', testAccuracy, false);
+    // document.getElementById('test-accuracy-btn').addEventListener('click', testAccuracy, false);
     document.getElementById('load-img-btn').addEventListener('click', loadAndDrawRandomImage, false);
     document.getElementById('clear-btn').addEventListener('click', clearCanvas, false);
     document.getElementById('predict-btn').addEventListener('click', predict, false);
@@ -51,22 +50,23 @@ const App = (() => {
     predictFromDrawing = true;
   }
 
-  /**
-   * Returns an array of Zeros except there is a one at the position of the given label
-   */
-  function oneHot(label) {
-    let target = new Array(nClasses).fill(0);
-    let pos = Labels[label];
-    target[pos] = 1;
-    return target;
-  }
-
   function loadAndDrawRandomImage() {
     Utils.assert(combinedData.length > 0, 'no data loaded');
     let randomIdx = Math.floor(Math.random() * combinedData.length);
     currentData = combinedData[randomIdx];
     draw(currentData.data);
     predictFromDrawing = false;
+  }
+
+  // Hope this work on the Reference
+  function convertData(data) {
+    for (let dataIdx = 0; dataIdx < data.length; dataIdx++) {
+      let image = data[dataIdx].data;
+      image = image.map((pixel) => {
+        return Utils.map(pixel, 0, 255, 1, 0);
+      });
+      data[dataIdx].data = image;
+    }
   }
 
   async function handleFileSelect_load_dataset(evt) {
@@ -124,121 +124,90 @@ const App = (() => {
   }
 
   function predict() {
+    if (model == undefined || trained == false) {
+      console.log('modele undefinied or not trained');
+      return;
+    }
+
     let image;
-
-    if (predictFromDrawing) {
-      image = resample_single(canvas, 28, 28, false);
-      draw(image);
-    } else {
-      Utils.assert(currentData !== undefined, 'image must be loaded');
-      image = currentData.data;
-      console.log('You gave me: ', currentData.label);
-    }
-
-    let output = nn.predict(image);
-    const maxIdx = output.indexOf(Math.max(...output));
-    let key = Object.keys(Labels)[maxIdx];
-    console.log('I think it is: ', key);
-  }
-
-  // Hope this work on the Reference
-  function convertData(data) {
-    for (let dataIdx = 0; dataIdx < data.length; dataIdx++) {
-      let image = data[dataIdx].data;
-      image = image.map((pixel) => {
-        return Utils.map(pixel, 0, 255, 1, 0);
-      });
-      data[dataIdx].data = image;
-    }
-  }
-
-  function testAccuracy() {
-    Utils.assert(combinedData.length > 0, 'no data loaded');
-
-    const nTotal = 100;
-    let correct = 0;
-
-    for (let i = 0; i < nTotal; i++) {
-      //pick random data
-      let randomIdx = Math.floor(Math.random() * combinedData.length);
-
-      let data = combinedData[randomIdx];
-      const label = data.label;
-      let image = data.data;
-
-      const output = nn.predict(image);
-      const maxIdx = output.indexOf(Math.max(...output));
-      const key = Object.keys(Labels)[maxIdx];
-
-      if (key == label) {
-        correct++;
-      }
-    }
-
-    console.log('test accuracy: ', correct / nTotal);
-  }
-
-  function train() {
-    Utils.assert(combinedData.length > 0, 'no data loaded');
-
-    let batchIdx = 0;
-    function iterateBatch() {
-      batchIdx++;
-      let image;
-      let label;
-
-      // Train batch
-      for (let i = 0; i < iterations_per_draw_cycle; i++) {
-        //pick random data
-        let randomIdx = Math.floor(Math.random() * combinedData.length);
-
-        let data = combinedData[randomIdx];
-        label = data.label;
-        image = data.data;
-
-        //oneHot
-        let target = oneHot(label);
-        nn.train(image, target);
-      }
-
-      // Calculate Loss in Sub Batch
-      let loss = 0;
-      for (let i = 0; i < n_loss_sample; i++) {
-        let randomIdx = Math.floor(Math.random() * combinedData.length);
-        let data = combinedData[randomIdx];
-        label = data.label;
-        image = data.data;
-
-        //oneHot
-        let target = oneHot(label);
-
-        const output = nn.predict(image);
-        let error = 0;
-        for (let outIdx = 0; outIdx < output.length; outIdx++) {
-          error = target[outIdx] - output[outIdx];
-          error *= error;
-        }
-        loss += 0.5 * error;
-      }
-      loss /= n_loss_sample;
-      console.log('loss', data_counter, loss);
-      loss_data.push([data_counter++, loss]);
-      draw(image);
-
-      if (batchIdx > batch_iterations) {
-        console.log('training finished');
-        Utils.download(nn.serialize(), '10_100_nn_xyz.net');
-        return;
+    tf.tidy(() => {
+      if (predictFromDrawing) {
+        image = resample_single(canvas, 28, 28, false);
+        draw(image);
       } else {
-        window.requestAnimationFrame(iterateBatch);
+        Utils.assert(currentData !== undefined, 'image must be loaded');
+        image = currentData.data;
+        console.log('You gave me: ', currentData.label);
       }
-    }
-    window.requestAnimationFrame(iterateBatch);
+
+      let x = tf.tensor4d(image, [1, 28, 28, 1]);
+      let y = model.predict(x);
+      let output = y.dataSync();
+
+      const maxIdx = output.indexOf(Math.max(...output));
+      console.log('🚀 ~ file: doodle.js:143 ~ tf.tidy ~ maxIdx', maxIdx);
+      let key = Object.keys(Labels)[maxIdx];
+      console.log('I think it is: ', key);
+    });
+  }
+
+  function doPrediction(model, data, testDataSize = 500) {
+    const IMAGE_WIDTH = 28;
+    const IMAGE_HEIGHT = 28;
+    const testData = data.nextTestBatch(testDataSize);
+
+    const testxs = testData.x; //.reshape([testDataSize, IMAGE_WIDTH, IMAGE_HEIGHT, 1]);
+    const labels = testData.y.argMax(-1);
+
+    const preds = model.predict(testxs).argMax(-1);
+
+    testxs.dispose();
+    return [preds, labels];
+  }
+
+  async function showAccuracy(model, data) {
+    const [preds, labels] = doPrediction(model, data);
+    const classAccuracy = await tfvis.metrics.perClassAccuracy(labels, preds);
+    const container = { name: 'Accuracy', tab: 'Evaluation' };
+    const classNames = Object.keys(Labels);
+
+    tfvis.show.perClassAccuracy(container, classAccuracy, classNames);
+
+    labels.dispose();
+  }
+
+  async function showConfusion(model, data) {
+    const [preds, labels] = doPrediction(model, data);
+    const confusionMatrix = await tfvis.metrics.confusionMatrix(labels, preds);
+    const container = { name: 'Confusion Matrix', tab: 'Evaluation' };
+    const classNames = Object.keys(Labels);
+
+    tfvis.render.confusionMatrix(container, { values: confusionMatrix, tickLabels: classNames });
+
+    labels.dispose();
+  }
+
+  async function train() {
+    Utils.assert(combinedData.length > 0, 'no data loaded');
+
+    model = nn.getModel();
+    tfvis.show.modelSummary({ name: 'Model Summary', tab: 'Model' }, model);
+
+    const imageDataset = createImageDataset(28, 28);
+    imageDataset.setData(combinedData);
+
+    const trainingData = imageDataset.getTrainingData();
+    await nn.train(trainingData.x, trainingData.y, model);
+
+    console.log('training finished');
+
+    showAccuracy(model, imageDataset);
+    showConfusion(model, imageDataset);
+
+    trained = true;
   }
 
   function draw(image) {
-    loss_graph.updateOptions({ file: loss_data });
-
     image = image.map((pixel) => {
       return Utils.map(pixel, 0, 1, 0, 255);
     });
