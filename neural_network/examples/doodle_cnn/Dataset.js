@@ -12,10 +12,25 @@ function createImageDataset(img_width, img_height) {
   const _img_width = img_width;
   const _img_height = img_height;
 
+  function getLabelList() {
+    let labelList = [];
+    let nLabels = _data.length;
+    for (let dataIdx = 0; dataIdx < nLabels; dataIdx++) {
+      labelList.push(_data[dataIdx].label);
+    }
+
+    // https://stackoverflow.com/questions/9229645/remove-duplicate-values-from-js-array
+    labelList = [...new Set(labelList)];
+    return labelList;
+  }
+
+  function printInfo() {
+    console.log('data length:', _data.length);
+    console.table(getLabelList());
+  }
+
   // add data with label to the record
   function addData(data, label) {
-    //TODO: check sizes
-
     _data.push({
       label,
       data,
@@ -31,9 +46,11 @@ function createImageDataset(img_width, img_height) {
     _data = [];
   }
 
-  function setData(data) {
+  function setData(data, verbose = false) {
     _data = data;
-    printInfo(_data);
+    if (verbose) {
+      printInfo(_data);
+    }
   }
 
   function saveData(filename) {
@@ -46,17 +63,21 @@ function createImageDataset(img_width, img_height) {
     Utils.download(JSON.stringify(_data), _filename, 'text/plain');
   }
 
-  function printInfo() {
-    console.log('length:', _data.length);
-    if (_data.length >= 0) {
-      console.log('data length', Object.keys(_data[0].data).length);
+  // shuffles to objects and preserve their relation
+  function shuffle(obj1, obj2) {
+    let index = obj1.length;
+    let rnd, tmp1, tmp2;
+
+    while (index) {
+      rnd = Math.floor(Math.random() * index);
+      index -= 1;
+      tmp1 = obj1[index];
+      tmp2 = obj2[index];
+      obj1[index] = obj1[rnd];
+      obj2[index] = obj2[rnd];
+      obj1[rnd] = tmp1;
+      obj2[rnd] = tmp2;
     }
-  }
-
-  function getTrainingData() {
-    const nDatasets = _data.length;
-
-    return nextTestBatch(nDatasets, false);
   }
 
   function nextTestBatch(size, randomize = true) {
@@ -75,6 +96,8 @@ function createImageDataset(img_width, img_height) {
       yData.push(labelList.indexOf(_data[yaIdx].label));
     }
 
+    shuffle(xData, yData);
+
     let xs = tf.tensor(xData, [xData.length, _img_width, _img_height, 1]);
     let labelstensor = tf.tensor1d(yData, 'int32');
     let ys = tf.oneHot(labelstensor, labelList.length);
@@ -84,6 +107,12 @@ function createImageDataset(img_width, img_height) {
       x: xs,
       y: ys,
     };
+  }
+
+  function getTrainingData() {
+    const nDatasets = _data.length;
+
+    return nextTestBatch(nDatasets, false);
   }
 
   return {

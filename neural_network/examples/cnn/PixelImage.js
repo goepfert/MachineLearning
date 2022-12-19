@@ -5,6 +5,7 @@ class PixelImage {
     this._nRows = nRows;
   }
 
+  //https://www.javascripttutorial.net/es6/javascript-getters-and-setters/
   get data() {
     return this._data;
   }

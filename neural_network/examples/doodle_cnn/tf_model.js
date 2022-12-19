@@ -25,24 +25,12 @@ function createNetwork(width, height, nClasses) {
         kernelSize: 3,
         filters: 5,
         strides: 1,
-        padding: 'same',
+        //padding: 'same',
         activation: 'relu',
         kernelInitializer: 'varianceScaling',
       })
     );
 
-    model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }));
-
-    model.add(
-      tf.layers.conv2d({
-        kernelSize: 3,
-        filters: 8,
-        strides: 1,
-        padding: 'same',
-        activation: 'relu',
-        kernelInitializer: 'varianceScaling',
-      })
-    );
     model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }));
 
     model.add(
@@ -50,7 +38,7 @@ function createNetwork(width, height, nClasses) {
         kernelSize: 3,
         filters: 16,
         strides: 1,
-        padding: 'same',
+        //padding: 'same',
         activation: 'relu',
         kernelInitializer: 'varianceScaling',
       })
@@ -82,8 +70,8 @@ function createNetwork(width, height, nClasses) {
   }
 
   function compile_model(model) {
-    const optimizer = tf.train.adam(3e-4);
-    //const optimizer = tf.train.adam();
+    // const optimizer = tf.train.adam(3e-4);
+    const optimizer = tf.train.adam();
     model.compile({
       optimizer: optimizer,
       loss: 'categoricalCrossentropy',
@@ -92,16 +80,14 @@ function createNetwork(width, height, nClasses) {
   }
 
   async function train(xs, ys, model) {
-    // mhh: Which batch size shall I choose?
     // https://machinelearningmastery.com/gentle-introduction-mini-batch-gradient-descent-configure-batch-size/
-    const BATCH_SIZE = 32;
+    const BATCH_SIZE = 16;
     const metrics = ['loss', 'val_loss', 'acc', 'val_acc'];
     const container = {
       name: 'Model Training',
       tab: 'Model',
       styles: { height: '1000px' },
     };
-    //const fitCallbacks = tfvis.show.fitCallbacks(container, metrics);
     const onEpochEnd = tfvis.show.fitCallbacks(container, metrics);
 
     return model.fit(xs, ys, {

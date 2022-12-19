@@ -20,7 +20,7 @@ const App = (() => {
 
   // - Image ---------------------------------------------------------------
   const nClasses = numberOfLabels; // HARD CODED
-  let combinedData = [];
+  let imageDataset;
   let currentData;
 
   // - Drawing ---------------------------------------------------------------
@@ -51,14 +51,17 @@ const App = (() => {
   }
 
   function loadAndDrawRandomImage() {
-    Utils.assert(combinedData.length > 0, 'no data loaded');
-    let randomIdx = Math.floor(Math.random() * combinedData.length);
-    currentData = combinedData[randomIdx];
-    draw(currentData.data);
+    Utils.assert(imageDataset != undefined, 'no data loaded');
+
+    const imageData = imageDataset.getData();
+    const randomIdx = Math.floor(Math.random() * imageData.length);
+    currentData = imageData[randomIdx];
+    let image = currentData.data;
+    draw(image);
     predictFromDrawing = false;
   }
 
-  // Hope this work on the Reference
+  // Hope this works on the reference
   function convertData(data) {
     for (let dataIdx = 0; dataIdx < data.length; dataIdx++) {
       let image = data[dataIdx].data;
@@ -73,6 +76,10 @@ const App = (() => {
     const nFiles = evt.target.files.length;
     let promises = [];
 
+    let combinedData = [];
+    imageDataset = createImageDataset(28, 28);
+    imageDataset.clearData();
+
     for (let fileIdx = 0; fileIdx < nFiles; fileIdx++) {
       const file = evt.target.files[fileIdx];
       console.log('loading data from', file.name);
@@ -84,8 +91,7 @@ const App = (() => {
           const textByLine = res.split('\n');
           const data = JSON.parse(textByLine);
 
-          const imageDataset = createImageDataset();
-          imageDataset.clearData();
+          convertData(data);
           imageDataset.setData(data);
 
           resolve(imageDataset.getData());
@@ -99,15 +105,12 @@ const App = (() => {
     // wait until all promises came back
     const allData = await Promise.all(promises);
     combinedData = [];
+
     allData.map((data) => {
-      // console.log(data);
-
-      // rescale black <-> white and 0...1
-      convertData(data);
-
       combinedData = combinedData.concat(structuredClone(data));
     });
-    // console.log(combinedData);
+    imageDataset.setData(combinedData);
+    imageDataset.printInfo();
     console.log('all files loaded successfully, ready for training');
   }
 
@@ -145,7 +148,6 @@ const App = (() => {
       let output = y.dataSync();
 
       const maxIdx = output.indexOf(Math.max(...output));
-      console.log('🚀 ~ file: doodle.js:143 ~ tf.tidy ~ maxIdx', maxIdx);
       let key = Object.keys(Labels)[maxIdx];
       console.log('I think it is: ', key);
     });
@@ -188,13 +190,10 @@ const App = (() => {
   }
 
   async function train() {
-    Utils.assert(combinedData.length > 0, 'no data loaded');
+    Utils.assert(imageDataset != undefined, 'no data loaded');
 
     model = nn.getModel();
     tfvis.show.modelSummary({ name: 'Model Summary', tab: 'Model' }, model);
-
-    const imageDataset = createImageDataset(28, 28);
-    imageDataset.setData(combinedData);
 
     const trainingData = imageDataset.getTrainingData();
     await nn.train(trainingData.x, trainingData.y, model);
