@@ -6,7 +6,6 @@
 
 'use strict';
 
-// shape[width, height]
 function createNetwork(width, height, nClasses) {
   const IMAGE_WIDTH = width; // columns
   const IMAGE_HEIGHT = height; // rows
@@ -55,7 +54,6 @@ function createNetwork(width, height, nClasses) {
       })
     );
 
-    // Our last layer is a dense layer which has 10 output units, one for each
     model.add(
       tf.layers.dense({
         units: NUM_OUTPUT_CLASSES,
@@ -92,7 +90,7 @@ function createNetwork(width, height, nClasses) {
 
     return model.fit(xs, ys, {
       batchSize: BATCH_SIZE,
-      epochs: 15,
+      epochs: 1,
       shuffle: true,
       validationSplit: 0.2,
       callbacks: onEpochEnd,

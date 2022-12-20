@@ -4,11 +4,11 @@ import Utils from '../../../Utils.js';
 import { Labels, numberOfLabels } from './Labels.js';
 
 const App = (() => {
+  //- Canvas and friends --------------------------------
   const canvas = document.getElementById('canvas');
   const width = (canvas.width = 280);
   const height = (canvas.height = 280);
   const context = canvas.getContext('2d');
-
   const grid = 10;
   const nCols = width / grid; // shall be 28
   const nRows = height / grid;
@@ -16,7 +16,6 @@ const App = (() => {
   // - Network -------------------------------------------------------------
   let nn;
   let model;
-  let trained = false;
 
   // - Image ---------------------------------------------------------------
   const nClasses = numberOfLabels; // HARD CODED
@@ -30,8 +29,8 @@ const App = (() => {
   function init() {
     document.getElementById('file-load-dataset').addEventListener('change', handleFileSelect_load_dataset, false);
     document.getElementById('train-btn').addEventListener('click', train, false);
-    document.getElementById('file-load-network').addEventListener('change', handleFileSelect_load_network, false);
-    // document.getElementById('test-accuracy-btn').addEventListener('click', testAccuracy, false);
+    document.getElementById('load-network').addEventListener('change', loadModel, false);
+    document.getElementById('save-network').addEventListener('click', saveModel, false);
     document.getElementById('load-img-btn').addEventListener('click', loadAndDrawRandomImage, false);
     document.getElementById('clear-btn').addEventListener('click', clearCanvas, false);
     document.getElementById('predict-btn').addEventListener('click', predict, false);
@@ -50,6 +49,9 @@ const App = (() => {
     predictFromDrawing = true;
   }
 
+  /**
+   * Load and draw random image from imageDataset
+   */
   function loadAndDrawRandomImage() {
     Utils.assert(imageDataset != undefined, 'no data loaded');
 
@@ -61,7 +63,9 @@ const App = (() => {
     predictFromDrawing = false;
   }
 
-  // Hope this works on the reference
+  /**
+   * Remap pixeldata in place to be within [0, 1]
+   */
   function convertData(data) {
     for (let dataIdx = 0; dataIdx < data.length; dataIdx++) {
       let image = data[dataIdx].data;
@@ -72,6 +76,10 @@ const App = (() => {
     }
   }
 
+  /**
+   * Multiselect image files that are created with createDataset
+   * Sets imageDataset global variable
+   */
   async function handleFileSelect_load_dataset(evt) {
     const nFiles = evt.target.files.length;
     let promises = [];
@@ -114,24 +122,12 @@ const App = (() => {
     console.log('all files loaded successfully, ready for training');
   }
 
-  function handleFileSelect_load_network(evt) {
-    const file = evt.target.files[0];
-    const reader = new FileReader();
-    reader.addEventListener('load', (event) => {
-      nn = NeuralNetwork.deserialize(event.target.result);
-
-      console.log('neural network loaded from file', nn);
-    });
-
-    reader.readAsText(file);
-  }
-
+  /**
+   * Infer model either on loaded image or on self drawn image
+   * Currently only console output as feedback
+   */
   function predict() {
-    if (model == undefined || trained == false) {
-      console.log('modele undefinied or not trained');
-      return;
-    }
-
+    Utils.assert(model != undefined, 'model undefined');
     let image;
     tf.tidy(() => {
       if (predictFromDrawing) {
@@ -153,6 +149,9 @@ const App = (() => {
     });
   }
 
+  /**
+   * Only used for Accuracy and Confusion calculation
+   */
   function doPrediction(model, data, testDataSize = 500) {
     const IMAGE_WIDTH = 28;
     const IMAGE_HEIGHT = 28;
@@ -202,8 +201,38 @@ const App = (() => {
 
     showAccuracy(model, imageDataset);
     showConfusion(model, imageDataset);
+  }
 
-    trained = true;
+  /**
+   * save NN model
+   * HELP: How to avoid page refresh?
+   */
+  async function saveModel(e) {
+    Utils.assert(model != undefined, 'model undefined');
+    const filename = 'the_great_doodle_model';
+    //console.log(await model.save(`downloads://${filename}`));
+  }
+
+  /**
+   * load NN model
+   * user has to select json and bin file ... in the right order :(
+   */
+  async function loadModel(e) {
+    Utils.assert(e.target.files.length == 2, 'select one json and one bin file for model');
+    let jsonFile;
+    let binFile;
+
+    if (e.target.files[0].name.split('.').pop() == 'json') {
+      jsonFile = e.target.files[0];
+      binFile = e.target.files[1];
+    } else {
+      jsonFile = e.target.files[1];
+      binFile = e.target.files[0];
+    }
+
+    Utils.assert(model == undefined, 'model already defined?'); //overwrite????
+    model = await tf.loadLayersModel(tf.io.browserFiles([jsonFile, binFile]));
+    console.log(model);
   }
 
   function draw(image) {
@@ -249,13 +278,6 @@ const App = (() => {
 
   /**
    * https://stackoverflow.com/questions/2303690/resizing-an-image-in-an-html5-canvas
-   *
-   * Hermite resize - fast image resize/resample using Hermite filter. 1 cpu version!
-   *
-   * @param {HtmlElement} canvas
-   * @param {int} width
-   * @param {int} height
-   * @param {boolean} resize_canvas if true, canvas will be resized. Optional.
    */
   function resample_single(canvas, width, height, resize_canvas) {
     let width_source = canvas.width;
