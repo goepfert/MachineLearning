@@ -90,7 +90,7 @@ function createNetwork(width, height, nClasses) {
 
     return model.fit(xs, ys, {
       batchSize: BATCH_SIZE,
-      epochs: 1,
+      epochs: 15,
       shuffle: true,
       validationSplit: 0.2,
       callbacks: onEpochEnd,

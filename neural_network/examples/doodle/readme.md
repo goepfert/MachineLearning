@@ -17,7 +17,7 @@ There exists a _Quick Draw Dataset_ that contains a collection of millions of dr
 
 I used the simplified drawings have been rendered into a 28x28 grayscale bitmap.
 
-- download 13 examples of those [numpy_bitmaps](https://console.cloud.google.com/storage/browser/quickdraw_dataset/full/numpy_bitmap;tab=objects).
+- download 14 examples of those [numpy_bitmaps](https://console.cloud.google.com/storage/browser/quickdraw_dataset/full/numpy_bitmap;tab=objects).
 
 Random selection of image classes
 
@@ -32,13 +32,19 @@ The network is still the simple self written network with only one hidden layer.
 
 - 28x28 = 784 inputs
 - 196 hidden nodes (kind of arbitrary choice)
-- 13 outputs
+- 14 outputs
 
 The output array was [One-Hot](https://machinelearningmastery.com/why-one-hot-encode-data-in-machine-learning/) encoded to match the desired classification purpose.
 
+The number of parameters are
+- $(784+1)\cdot196 = 153860$ for the first layer
+- $(196+1)\cdot14 = 2758$ for the output layer
+
+And in total 156618 parameters. This is quite a lot for such a fairly simple task.
+
 **Training process**
 
-- Select all 13 pre-converted datasets (100 apples, 100 bananas etc.)
+- Select all 14 pre-converted datasets (100 apples, 100 bananas etc.)
 - Randomly select one image from the combined dataset, generated One_hot output array
 - Train and repeat
 - Display Loss function after a couple of _hidden trainings_ and the last training image
