@@ -2,6 +2,7 @@
  * heavily inspired by https://github.com/CodingWith-Adam/pacman/blob/main/src/Game.js
  */
 
+import { MovingDirection } from './MovingDirection.js';
 import { createTileMap } from './TileMap.js';
 
 const tileSize = 32;
@@ -31,20 +32,57 @@ function init() {
   gameOver = false;
 }
 
+function getNewRandomMovingDirection(currentState) {
+  const rndIdx = getRandomInt(0, 3);
+  // console.log(rndIdx, currentState[rndIdx]);
+
+  if (currentState[rndIdx] == -1) {
+    return getNewRandomMovingDirection(currentState);
+  } else {
+    return rndIdx;
+  }
+}
+
 async function gameLoop() {
   tileMap.draw(ctx);
-  pacman.draw(ctx, pause());
+  pacman.draw(ctx);
 
   // Choose action of current state
   let currentState = tileMap.getCurrentState();
-  console.log(currentState);
+
+  let newMovingDirection;
+  let q_value;
 
   let rnd = Math.random();
-  if (rnd <= epsilon) {
-    const max = Math.max(...currentState);
-    const max_index = currentState.indexOf(max);
-    console.log(max, max_index);
+  if (rnd > epsilon) {
+    console.log('exploit');
+    q_value = Math.max(...currentState);
+    newMovingDirection = currentState.indexOf(q_value);
+    // console.log(q_value, newMovingDirection, Object.keys(MovingDirection)[newMovingDirection]);
   } else {
+    console.log('explore');
+    const rndIdx = getNewRandomMovingDirection(currentState);
+    q_value = currentState[rndIdx];
+    newMovingDirection = rndIdx;
+  }
+  //  console.log(newMovingDirection);
+  pacman.move(newMovingDirection);
+
+  // Get max Q of new state
+  let newState = tileMap.getCurrentState();
+  const max_q_prime = Math.max(...newState);
+
+  // Update current/previous Q-value
+  const reward = tileMap.getReward();
+  const new_q_value = q_value + learning_rate * (reward + discount_rate * max_q_prime - q_value);
+  console.log(epsilon, reward, q_value, max_q_prime, new_q_value);
+
+  currentState[newMovingDirection] = new_q_value;
+  //currentState[newMovingDirection] = 0;
+
+  epsilon = epsilon * (1 - decay_rate);
+  if (epsilon < epsilon_min) {
+    epsilon = epsilon_min;
   }
 
   checkGameOver();
@@ -86,4 +124,17 @@ function gameStart(event) {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Returns a random integer between min (inclusive) and max (inclusive).
+ * The value is no lower than min (or the next integer greater than min
+ * if min isn't an integer) and no greater than max (or the next integer
+ * lower than max if max isn't an integer).
+ * Using Math.round() will give you a non-uniform distribution!
+ */
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }

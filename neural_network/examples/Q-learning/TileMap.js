@@ -10,16 +10,30 @@ const createTileMap = (tileSize) => {
   //4 - -2
   //5 - +100
   //7 - start
+  // const tileMap = [
+  //   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  //   [1, 0, 0, 2, 2, 7, 0, 0, 0, 0, 0, 0, 1],
+  //   [1, 2, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
+  //   [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+  //   [1, 2, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1],
+  //   [1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1],
+  //   [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+  //   [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+  //   [1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1],
+  //   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  //   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  // ];
+
   const tileMap = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
-    [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
-    [1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1],
-    [1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1],
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-    [1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 1],
+    [1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   ];
@@ -70,7 +84,7 @@ const createTileMap = (tileSize) => {
       row.forEach((tile, colIdx) => {
         switch (tile) {
           case 7:
-            //map[rowIdx][colIdx] = 0; // Replace with dot
+            tileMap[rowIdx][colIdx] = 0; // Replace with nothing
             // tile = 0; wrong
             pacman = createPacman(colIdx * tileSize, rowIdx * tileSize, tileSize, velocity, this);
             // return createPacman; wrong
@@ -132,25 +146,30 @@ const createTileMap = (tileSize) => {
   function eatDot(x, y) {
     const row = y / tileSize;
     const column = x / tileSize;
+    tileMap[row][column] = 0;
 
-    if (Number.isInteger(row) && Number.isInteger(column)) {
-      const tile = tileMap[row][column];
-      switch (tile) {
-        case 2:
-          tileMap[row][column] = 0;
-          break;
-        case 3:
-          tileMap[row][column] = 0;
-          break;
-      }
-    }
+    // if (Number.isInteger(row) && Number.isInteger(column)) {
+    //   const tile = tileMap[row][column];
+    //   switch (tile) {
+    //     case 2:
+    //       tileMap[row][column] = 0;
+    //       break;
+    //     case 3:
+    //       tileMap[row][column] = 0;
+    //       break;
+    //   }
+    // }
   }
 
   function init_q_table() {
     q_table.forEach((row, rowIdx) => {
       row.forEach((action, colIdx) => {
         let tile = tileMap[rowIdx][colIdx];
-        q_table[rowIdx][colIdx] = [0, 0, 0, 0];
+        let r1 = Math.random() / 100;
+        let r2 = Math.random() / 100;
+        let r3 = Math.random() / 100;
+        let r4 = Math.random() / 100;
+        q_table[rowIdx][colIdx] = [r1, r2, r3, r4];
         if (tile == 1) {
           q_table[rowIdx][colIdx] = [-1, -1, -1, -1];
         } else {
@@ -183,6 +202,22 @@ const createTileMap = (tileSize) => {
     return q_table[pos.y / tileSize][pos.x / tileSize];
   }
 
+  function getReward() {
+    if (pacman == undefined) {
+      console.log('alarm: no pacman');
+    }
+    let pos = pacman.getPosition();
+    return tileMap[pos.y / tileSize][pos.x / tileSize];
+  }
+
+  function setQValue(newQvalue) {
+    if (pacman == undefined) {
+      console.log('alarm: no pacman');
+    }
+    let pos = pacman.getPosition();
+    tileMap[pos.y / tileSize][pos.x / tileSize] = newQvalue;
+  }
+
   return {
     draw,
     getNewPacman,
@@ -190,6 +225,8 @@ const createTileMap = (tileSize) => {
     setCanvasSize,
     eatDot,
     getCurrentState,
+    getReward,
+    setQValue,
   };
 };
 

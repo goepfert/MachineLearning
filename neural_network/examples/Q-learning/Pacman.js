@@ -35,11 +35,8 @@ const createPacman = (x, y, tileSize, velocity, tileMap) => {
     pacmanImages.push(pacmanImage4);
   })();
 
-  function draw(ctx, pause) {
-    if (!pause) {
-      move();
-    }
-    eatDot();
+  function draw(ctx) {
+    //eatDot();
     ctx.save();
     ctx.translate(x + size, y + size); //Bring origin of the cavas onto center of pacman
     ctx.rotate((currentMovingDirection * Math.PI) / 2); //Rotate canvas instead of pacman
@@ -47,26 +44,8 @@ const createPacman = (x, y, tileSize, velocity, tileMap) => {
     ctx.restore();
   }
 
-  function move() {
-    //Check if requested Direction is allowed
-    if (currentMovingDirection !== requestedMovingDirection) {
-      if (Number.isInteger(x / tileSize) && Number.isInteger(y / tileSize)) {
-        if (!tileMap.didCollideWithEnv(x, y, requestedMovingDirection)) {
-          currentMovingDirection = requestedMovingDirection;
-        }
-      }
-    } else if (currentMovingDirection != null && pacmanAnimationTimer == null) {
-      pacmanAnimationTimer = pacmanAnimationTimerDefault;
-    }
-
-    //Check for collision with current direction
-    if (tileMap.didCollideWithEnv(x, y, currentMovingDirection)) {
-      pacmanAnimationTimer = null;
-      pacmanIdx = 1;
-      return;
-    }
-
-    switch (currentMovingDirection) {
+  function move(newMovingDirection) {
+    switch (newMovingDirection) {
       case MovingDirection.up:
         y -= velocity;
         break;
@@ -134,6 +113,7 @@ const createPacman = (x, y, tileSize, velocity, tileMap) => {
   return {
     madeFirstMove,
     draw,
+    move,
     getPosition,
     getWidth: () => {
       return tileSize;
