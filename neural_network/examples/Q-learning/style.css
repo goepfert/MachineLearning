@@ -1,0 +1,35 @@
+#gameCanvas {
+  box-shadow: 10px 10px 20px black;
+}
+
+h1 {
+  text-align: center;
+  font-family: 'comic sans MS';
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  height: 100vh;
+  background: linear-gradient(0deg, rgb(17, 51, 161) 0%, rgb(136, 34, 195) 100%);
+}
+
+.footer {
+  font-family: 'Permanent marker', cursive;
+  position: absolute;
+  bottom: 5px;
+  text-align: right;
+  width: 100%;
+  max-width: 960px;
+}
+
+div#comment {
+  text-align: center;
+  margin: 10px;
+}
+
+.invisible {
+  visibility: hidden;
+}

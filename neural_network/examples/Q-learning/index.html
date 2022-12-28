@@ -4,9 +4,19 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <link rel="stylesheet" href="./style.css" />
+    <title>Q Learning</title>
   </head>
   <body>
-    <script src="./q_learning.js"></script>
+    <div>
+      <h1>Q Learning</h1>
+      <canvas id="gameCanvas"></canvas>
+      <div class="invisible" id="comment">hit spacebar to restart</div>
+      <div class="footer">
+        Code available on
+        <a href="https://github.com/goepfert/pacman">github</a>
+      </div>
+    </div>
+    <script src="./Game.js" type="module"></script>
   </body>
 </html>
