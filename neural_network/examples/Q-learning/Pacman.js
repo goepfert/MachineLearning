@@ -36,7 +36,7 @@ const createPacman = (x, y, tileSize, velocity, tileMap) => {
   })();
 
   function draw(ctx) {
-    //eatDot();
+    // eatDot();
     ctx.save();
     ctx.translate(x + size, y + size); //Bring origin of the cavas onto center of pacman
     ctx.rotate((currentMovingDirection * Math.PI) / 2); //Rotate canvas instead of pacman

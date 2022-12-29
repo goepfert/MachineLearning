@@ -3,46 +3,67 @@ import { createPacman } from './Pacman.js';
 
 const createTileMap = (tileSize) => {
   let pacman;
-  //1 - wall
-  //0 - nothing
-  //2 - +1
-  //3 - +10
-  //4 - -2
-  //5 - +100
-  //7 - start
+  //1 - wall, shall be excluded in possible actions
+  //0 - 0 reward, nothing
+  //2 - +1 reward, yellow dot
+  //3 - +2 reward, pink dot
+  //4 - -1 reward, ghost
+  //5 - +100 reward, goal
+  //7 - 0 reward, start position
+
+  // MICE
   // const tileMap = [
-  //   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  //   [1, 0, 0, 2, 2, 7, 0, 0, 0, 0, 0, 0, 1],
-  //   [1, 2, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
-  //   [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
-  //   [1, 2, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1],
-  //   [1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1],
-  //   [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-  //   [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-  //   [1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1],
-  //   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  //   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  //   [1, 1, 1, 1, 1],
+  //   [1, 7, 0, 0, 1],
+  //   [1, 0, 4, 5, 1],
+  //   [1, 1, 1, 1, 1],
   // ];
 
-  const tileMap = [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 1],
-    [1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  // Frozen Lake
+  // const tileMap = [
+  //   [1, 1, 1, 1, 1, 1],
+  //   [1, 7, 0, 0, 0, 1],
+  //   [1, 0, 4, 2, 4, 1],
+  //   [1, 0, 3, 0, 0, 1],
+  //   [1, 4, 0, 0, 5, 1],
+  //   [1, 1, 1, 1, 1, 1],
+  // ];
+
+  // Kitty
+  // const masterTileMap = [
+  //   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  //   [1, 7, 1, 0, 4, 0, 0, 0, 0, 0, 0, 1],
+  //   [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+  //   [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+  //   [1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1],
+  //   [1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1],
+  //   [1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1],
+  //   [1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  //   [1, 0, 0, 0, 2, 0, 2, 0, 1, 1, 1, 1],
+  //   [1, 2, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1],
+  //   [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 5, 1],
+  //   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  // ];
+
+  // Eat them all
+  const masterTileMap = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 7, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   ];
-
-  const q_table = tileMap.map((arr) => {
-    return arr.slice();
-  });
-
-  init_q_table();
+  let tileMap = [];
+  initTileMap();
+  let q_table = [];
+  initQTable();
 
   const yellowDot = new Image();
   yellowDot.src = 'images/yellowDot.png';
@@ -52,6 +73,12 @@ const createTileMap = (tileSize) => {
 
   const wall = new Image();
   wall.src = 'images/wall.png';
+
+  const ghost = new Image();
+  ghost.src = 'images/ghost.png';
+
+  const goal = new Image();
+  goal.src = 'images/goal.png';
 
   function draw(ctx) {
     tileMap.forEach((row, rowIdx) => {
@@ -64,7 +91,13 @@ const createTileMap = (tileSize) => {
             ctx.drawImage(yellowDot, colIdx * tileSize, rowIdx * tileSize, tileSize, tileSize);
             break;
           case 3:
-            ctx.drawImage(powerDot, colIdx * tileSize, rowIdx * tileSize, tileSize, tileSize);
+            ctx.drawImage(pinkDot, colIdx * tileSize, rowIdx * tileSize, tileSize, tileSize);
+            break;
+          case 4:
+            ctx.drawImage(ghost, colIdx * tileSize, rowIdx * tileSize, tileSize, tileSize);
+            break;
+          case 5:
+            ctx.drawImage(goal, colIdx * tileSize, rowIdx * tileSize, tileSize, tileSize);
             break;
           default:
             drawBlank(ctx, rowIdx, colIdx);
@@ -84,7 +117,7 @@ const createTileMap = (tileSize) => {
       row.forEach((tile, colIdx) => {
         switch (tile) {
           case 7:
-            tileMap[rowIdx][colIdx] = 0; // Replace with nothing
+            // tileMap[rowIdx][colIdx] = 0; // Replace with nothing
             // tile = 0; wrong
             pacman = createPacman(colIdx * tileSize, rowIdx * tileSize, tileSize, velocity, this);
             // return createPacman; wrong
@@ -143,32 +176,32 @@ const createTileMap = (tileSize) => {
     canvas.height = tileMap.length * tileSize;
   }
 
-  function eatDot(x, y) {
-    const row = y / tileSize;
-    const column = x / tileSize;
-    tileMap[row][column] = 0;
+  function clearReward() {
+    if (pacman == undefined) {
+      console.log('alarm: no pacman');
+    }
+    let pos = pacman.getPosition();
 
-    // if (Number.isInteger(row) && Number.isInteger(column)) {
-    //   const tile = tileMap[row][column];
-    //   switch (tile) {
-    //     case 2:
-    //       tileMap[row][column] = 0;
-    //       break;
-    //     case 3:
-    //       tileMap[row][column] = 0;
-    //       break;
-    //   }
-    // }
+    tileMap[pos.y / tileSize][pos.x / tileSize] = 0;
   }
 
-  function init_q_table() {
+  function initTileMap() {
+    tileMap = [];
+    tileMap = structuredClone(masterTileMap);
+  }
+
+  function initQTable() {
+    q_table = tileMap.map((arr) => {
+      return arr.slice();
+    });
+
     q_table.forEach((row, rowIdx) => {
       row.forEach((action, colIdx) => {
         let tile = tileMap[rowIdx][colIdx];
-        let r1 = Math.random() / 100;
-        let r2 = Math.random() / 100;
-        let r3 = Math.random() / 100;
-        let r4 = Math.random() / 100;
+        let r1 = Math.random() / 10;
+        let r2 = Math.random() / 10;
+        let r3 = Math.random() / 10;
+        let r4 = Math.random() / 10;
         q_table[rowIdx][colIdx] = [r1, r2, r3, r4];
         if (tile == 1) {
           q_table[rowIdx][colIdx] = [-1, -1, -1, -1];
@@ -192,6 +225,8 @@ const createTileMap = (tileSize) => {
         }
       });
     });
+
+    console.table(q_table);
   }
 
   function getCurrentState() {
@@ -207,15 +242,41 @@ const createTileMap = (tileSize) => {
       console.log('alarm: no pacman');
     }
     let pos = pacman.getPosition();
-    return tileMap[pos.y / tileSize][pos.x / tileSize];
+
+    const tile = tileMap[pos.y / tileSize][pos.x / tileSize];
+    //0 - 0 reward, nothing
+    //2 - +1 reward, yellow dot
+    //3 - +10 reward, pink dot
+    //4 - -1 reward, ghost
+    //5 - +100 reward, goal
+    //7 - 0 reward, start position
+    switch (tile) {
+      case 0:
+        return 0;
+      case 2:
+        return 1;
+      case 3:
+        return 2;
+      case 4:
+        return -1;
+      case 5:
+        return 100;
+      case 7:
+        return 0;
+      default:
+        return 0;
+    }
   }
 
-  function setQValue(newQvalue) {
+  function setQValue(newQvalue, x, y, z) {
     if (pacman == undefined) {
       console.log('alarm: no pacman');
     }
-    let pos = pacman.getPosition();
-    tileMap[pos.y / tileSize][pos.x / tileSize] = newQvalue;
+    q_table[y / tileSize][x / tileSize][z] = newQvalue;
+  }
+
+  function printQTable() {
+    console.table(q_table);
   }
 
   return {
@@ -223,10 +284,12 @@ const createTileMap = (tileSize) => {
     getNewPacman,
     didCollideWithEnv,
     setCanvasSize,
-    eatDot,
+    clearReward,
     getCurrentState,
     getReward,
     setQValue,
+    printQTable,
+    initTileMap,
   };
 };
 
