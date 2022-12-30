@@ -1,102 +1,106 @@
 import { MovingDirection } from './MovingDirection.js';
 import { createPacman } from './Pacman.js';
+import Utils from '../../../Utils.js';
 
 const createTileMap = (tileSize) => {
-  let pacman;
-  //1 - wall, shall be excluded in possible actions
-  //0 - 0 reward, nothing
-  //2 - +1 reward, yellow dot
-  //3 - +2 reward, pink dot
-  //4 - -1 reward, ghost
-  //5 - +100 reward, goal
-  //7 - 0 reward, start position
+  // 0 - 0 reward, nothing
+  // 1 - wall, shall be excluded in possible actions
+  // 2 - +1 reward,
+  // 4 - -10 reward, poison, end episode
+  // 7 - 0 reward, start position
+  // 9 - +100 reward, goal, end episode
 
   // MICE
-  // const tileMap = [
+  // const masterTileMap = [
   //   [1, 1, 1, 1, 1],
   //   [1, 7, 0, 0, 1],
-  //   [1, 0, 4, 5, 1],
+  //   [1, 0, 4, 9, 1],
   //   [1, 1, 1, 1, 1],
   // ];
 
   // Frozen Lake
-  // const tileMap = [
+  // const masterTileMap = [
   //   [1, 1, 1, 1, 1, 1],
   //   [1, 7, 0, 0, 0, 1],
-  //   [1, 0, 4, 2, 4, 1],
-  //   [1, 0, 3, 0, 0, 1],
-  //   [1, 4, 0, 0, 5, 1],
+  //   [1, 0, 4, 0, 4, 1],
+  //   [1, 0, 0, 0, 0, 1],
+  //   [1, 4, 0, 0, 9, 1],
   //   [1, 1, 1, 1, 1, 1],
   // ];
 
-  // Kitty
-  // const masterTileMap = [
-  //   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  //   [1, 7, 1, 0, 4, 0, 0, 0, 0, 0, 0, 1],
-  //   [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-  //   [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-  //   [1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1],
-  //   [1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1],
-  //   [1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1],
-  //   [1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  //   [1, 0, 0, 0, 2, 0, 2, 0, 1, 1, 1, 1],
-  //   [1, 2, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1],
-  //   [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 5, 1],
-  //   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  // ];
-
-  // Eat them all
+  // Kitty Cat
   const masterTileMap = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 7, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
-    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
-    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
-    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
-    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
-    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
-    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
-    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
-    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
-    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+    [1, 7, 1, 0, 0, 0, 0, 0, 0, 4, 0, 1],
+    [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+    [1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1],
+    [1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1],
+    [1, 0, 0, 1, 0, 1, 0, 2, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 4, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+    [1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 9, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   ];
+
+  let pacman;
+
   let tileMap = [];
   initTileMap();
-  let q_table = [];
+  let qTable = [];
   initQTable();
 
-  const yellowDot = new Image();
-  yellowDot.src = 'images/yellowDot.png';
-
-  const pinkDot = new Image();
-  pinkDot.src = 'images/pinkDot.png';
-
   const wall = new Image();
-  wall.src = 'images/wall.png';
+  wall.src = 'images/Wall.png';
 
-  const ghost = new Image();
-  ghost.src = 'images/ghost.png';
+  const agent = new Image();
+  agent.src = 'images/Agent.png';
 
   const goal = new Image();
-  goal.src = 'images/goal.png';
+  goal.src = 'images/Goal.png';
+
+  const reward = new Image();
+  reward.src = 'images/Reward.png';
+
+  const poison = new Image();
+  poison.src = 'images/Poison.png';
+
+  const right_img = new Image();
+  right_img.src = 'images/Right50.png';
+
+  const left_img = new Image();
+  left_img.src = 'images/Left50.png';
+
+  const up_img = new Image();
+  up_img.src = 'images/Up50.png';
+
+  const down_img = new Image();
+  down_img.src = 'images/Down50.png';
 
   function draw(ctx) {
     tileMap.forEach((row, rowIdx) => {
       row.forEach((tile, colIdx) => {
+        drawBlank(ctx, rowIdx, colIdx);
         switch (tile) {
+          case 0:
+            drawArrow(ctx, rowIdx, colIdx);
+            break;
           case 1:
             ctx.drawImage(wall, colIdx * tileSize, rowIdx * tileSize, tileSize, tileSize);
             break;
           case 2:
-            ctx.drawImage(yellowDot, colIdx * tileSize, rowIdx * tileSize, tileSize, tileSize);
-            break;
-          case 3:
-            ctx.drawImage(pinkDot, colIdx * tileSize, rowIdx * tileSize, tileSize, tileSize);
+            ctx.drawImage(reward, colIdx * tileSize, rowIdx * tileSize, tileSize, tileSize);
+            drawArrow(ctx, rowIdx, colIdx);
             break;
           case 4:
-            ctx.drawImage(ghost, colIdx * tileSize, rowIdx * tileSize, tileSize, tileSize);
+            ctx.drawImage(poison, colIdx * tileSize, rowIdx * tileSize, tileSize, tileSize);
             break;
-          case 5:
+          case 7:
+            //   // ctx.drawImage(agent, colIdx * tileSize, rowIdx * tileSize, tileSize, tileSize);
+            drawArrow(ctx, rowIdx, colIdx);
+            break;
+          case 9:
             ctx.drawImage(goal, colIdx * tileSize, rowIdx * tileSize, tileSize, tileSize);
             break;
           default:
@@ -108,67 +112,29 @@ const createTileMap = (tileSize) => {
   }
 
   function drawBlank(ctx, rowIdx, colIdx) {
-    ctx.fillStyle = 'black';
+    ctx.fillStyle = 'DimGray';
     ctx.fillRect(colIdx * tileSize, rowIdx * tileSize, tileSize, tileSize);
   }
 
-  function getNewPacman(velocity) {
-    tileMap.forEach((row, rowIdx) => {
-      row.forEach((tile, colIdx) => {
-        switch (tile) {
-          case 7:
-            // tileMap[rowIdx][colIdx] = 0; // Replace with nothing
-            // tile = 0; wrong
-            pacman = createPacman(colIdx * tileSize, rowIdx * tileSize, tileSize, velocity, this);
-            // return createPacman; wrong
-            break;
-        }
-      });
-    });
+  function drawArrow(ctx, rowIdx, colIdx) {
+    const currentState = qTable[rowIdx][colIdx];
+    let maxQValue = Math.max(...currentState);
+    const direction = currentState.indexOf(maxQValue);
 
-    return pacman;
-  }
-
-  function didCollideWithEnv(x, y, movingDirection) {
-    if (movingDirection == null) {
-      return;
+    switch (direction) {
+      case MovingDirection.right:
+        ctx.drawImage(right_img, colIdx * tileSize, rowIdx * tileSize, tileSize, tileSize);
+        break;
+      case MovingDirection.left:
+        ctx.drawImage(left_img, colIdx * tileSize, rowIdx * tileSize, tileSize, tileSize);
+        break;
+      case MovingDirection.up:
+        ctx.drawImage(up_img, colIdx * tileSize, rowIdx * tileSize, tileSize, tileSize);
+        break;
+      case MovingDirection.down:
+        ctx.drawImage(down_img, colIdx * tileSize, rowIdx * tileSize, tileSize, tileSize);
+        break;
     }
-
-    if (Number.isInteger(x / tileSize) && Number.isInteger(y / tileSize)) {
-      let nextColumn = 0;
-      let nextRow = 0;
-
-      switch (movingDirection) {
-        case MovingDirection.right:
-          nextColumn = x + tileSize;
-          nextColumn = nextColumn / tileSize;
-          nextRow = y / tileSize;
-          break;
-        case MovingDirection.left:
-          nextColumn = x - tileSize;
-          nextColumn = nextColumn / tileSize;
-          nextRow = y / tileSize;
-          break;
-        case MovingDirection.up:
-          nextRow = y - tileSize;
-          nextRow = nextRow / tileSize;
-          nextColumn = x / tileSize;
-          break;
-        case MovingDirection.down:
-          nextRow = y + tileSize;
-          nextRow = nextRow / tileSize;
-          nextColumn = x / tileSize;
-          break;
-      }
-
-      // console.log(nextRow, nextColumn);
-      const tile = tileMap[nextRow][nextColumn];
-      if (tile === 1) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   function setCanvasSize(canvas) {
@@ -177,11 +143,8 @@ const createTileMap = (tileSize) => {
   }
 
   function clearReward() {
-    if (pacman == undefined) {
-      console.log('alarm: no pacman');
-    }
-    let pos = pacman.getPosition();
-
+    Utils.assert(pacman != undefined, 'alarm: no pacman');
+    const pos = pacman.getPosition();
     tileMap[pos.y / tileSize][pos.x / tileSize] = 0;
   }
 
@@ -191,98 +154,111 @@ const createTileMap = (tileSize) => {
   }
 
   function initQTable() {
-    q_table = tileMap.map((arr) => {
+    qTable = tileMap.map((arr) => {
       return arr.slice();
     });
 
-    q_table.forEach((row, rowIdx) => {
+    qTable.forEach((row, rowIdx) => {
       row.forEach((action, colIdx) => {
-        let tile = tileMap[rowIdx][colIdx];
-        let r1 = Math.random() / 10;
-        let r2 = Math.random() / 10;
-        let r3 = Math.random() / 10;
-        let r4 = Math.random() / 10;
-        q_table[rowIdx][colIdx] = [r1, r2, r3, r4];
+        const tile = tileMap[rowIdx][colIdx];
+        const r1 = Math.random() / 100;
+        const r2 = Math.random() / 100;
+        const r3 = Math.random() / 100;
+        const r4 = Math.random() / 100;
+        qTable[rowIdx][colIdx] = [r1, r2, r3, r4];
         if (tile == 1) {
-          q_table[rowIdx][colIdx] = [-1, -1, -1, -1];
+          // Wall
+          qTable[rowIdx][colIdx] = [-1, -1, -1, -1];
         } else {
-          // move left not possible
+          // Moving left not possible
           if (colIdx == 0 || tileMap[rowIdx][colIdx - 1] == 1) {
-            q_table[rowIdx][colIdx][MovingDirection.left] = -1;
+            qTable[rowIdx][colIdx][MovingDirection.left] = -1;
           }
-          // move right not possible
+          // Moving right not possible
           if (colIdx == tileMap[0].lenght - 1 || tileMap[rowIdx][colIdx + 1] == 1) {
-            q_table[rowIdx][colIdx][MovingDirection.right] = -1;
+            qTable[rowIdx][colIdx][MovingDirection.right] = -1;
           }
-          // move up not possible
+          // Moving up not possible
           if (rowIdx == 0 || tileMap[rowIdx - 1][colIdx] == 1) {
-            q_table[rowIdx][colIdx][MovingDirection.up] = -1;
+            qTable[rowIdx][colIdx][MovingDirection.up] = -1;
           }
-          // move down not possible
+          // Moving down not possible
           if (rowIdx == tileMap.length - 1 || tileMap[rowIdx + 1][colIdx] == 1) {
-            q_table[rowIdx][colIdx][MovingDirection.down] = -1;
+            qTable[rowIdx][colIdx][MovingDirection.down] = -1;
           }
         }
       });
     });
 
-    console.table(q_table);
+    console.table(qTable);
+  }
+
+  function getNewPacman(velocity) {
+    tileMap.forEach((row, rowIdx) => {
+      row.forEach((tile, colIdx) => {
+        switch (tile) {
+          case 7:
+            pacman = createPacman(colIdx * tileSize, rowIdx * tileSize, tileSize, velocity, this);
+            break;
+        }
+      });
+    });
+
+    return pacman;
   }
 
   function getCurrentState() {
-    if (pacman == undefined) {
-      console.log('alarm: no pacman');
-    }
-    let pos = pacman.getPosition();
-    return q_table[pos.y / tileSize][pos.x / tileSize];
+    Utils.assert(pacman != undefined, 'alarm: no pacman');
+    const pos = pacman.getPosition();
+    return qTable[pos.y / tileSize][pos.x / tileSize];
   }
 
-  function getReward() {
-    if (pacman == undefined) {
-      console.log('alarm: no pacman');
-    }
-    let pos = pacman.getPosition();
-
+  function getReward(clearAfter = false) {
+    Utils.assert(pacman != undefined, 'alarm: no pacman');
+    const pos = pacman.getPosition();
     const tile = tileMap[pos.y / tileSize][pos.x / tileSize];
-    //0 - 0 reward, nothing
-    //2 - +1 reward, yellow dot
-    //3 - +10 reward, pink dot
-    //4 - -1 reward, ghost
-    //5 - +100 reward, goal
-    //7 - 0 reward, start position
+
+    let reward = 0;
+    // 0 - 0 reward, nothing
+    // 1 - wall, shall be excluded in possible actions
+    // 2 - +1 reward,
+    // 4 - -10 reward, poison, end episode
+    // 7 - 0 reward, start position
+    // 9 - +100 reward, goal, end episode
     switch (tile) {
-      case 0:
-        return 0;
       case 2:
-        return 1;
-      case 3:
-        return 2;
+        reward = 1;
+        if (clearAfter) {
+          tileMap[pos.y / tileSize][pos.x / tileSize] = 0;
+        }
+        break;
       case 4:
-        return -1;
-      case 5:
-        return 100;
-      case 7:
-        return 0;
-      default:
-        return 0;
+        reward = -10;
+        if (clearAfter) {
+          tileMap[pos.y / tileSize][pos.x / tileSize] = 0;
+        }
+        break;
+      case 9:
+        reward = 100;
+        break;
     }
+
+    return reward;
   }
 
   function setQValue(newQvalue, x, y, z) {
-    if (pacman == undefined) {
-      console.log('alarm: no pacman');
-    }
-    q_table[y / tileSize][x / tileSize][z] = newQvalue;
+    Utils.assert(pacman != undefined, 'alarm: no pacman');
+    qTable[y / tileSize][x / tileSize][z] = newQvalue;
   }
 
   function printQTable() {
-    console.table(q_table);
+    console.table(qTable);
   }
 
   return {
     draw,
+    drawArrow,
     getNewPacman,
-    didCollideWithEnv,
     setCanvasSize,
     clearReward,
     getCurrentState,

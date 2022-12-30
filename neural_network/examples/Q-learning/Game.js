@@ -13,52 +13,44 @@ let tileMap;
 let pacman;
 let gameID = 0;
 
-const N_episodes_max = 100000;
-const N_steps_max = 100;
-let episodeOver;
+const N_episodes_max = 4000;
+const N_steps_max = 200;
 
-const learning_rate = 0.9;
-const discount_rate = 0.5;
+const learning_rate = 0.8;
+const discount_rate = 1;
 let epsilon;
 const epsilon_max = 1.0;
-const epsilon_min = 0.001;
+const epsilon_min = 0.5;
 const decay_rate = 0.01;
 
-function init() {
+async function init() {
   tileMap = createTileMap(tileSize);
   tileMap.setCanvasSize(canvas);
-
   pacman = tileMap.getNewPacman(velocity);
-
   epsilon = epsilon_max;
 
-  episodeOver = false;
+  await sleep(100); // quick fix for image loading
+  tileMap.draw(ctx);
+  pacman.draw(ctx);
+  // ctx.strokeStyle = 'black';
 }
 
 async function trainLoop() {
-  tileMap.draw(ctx);
-  pacman.draw(ctx);
-  await sleep(100); // quick fix for image loading
-
-  // let testState = [-1, 0, -1, -1];
-  // console.log(getNewRandomMovingDirection(testState));
-
   for (let episodeIdx = 0; episodeIdx < N_episodes_max; episodeIdx++) {
     console.log('starting new episode ', episodeIdx, ' / ', N_episodes_max);
-    // Reset Position of agent pacman
+    // Reset epsilon, tilemap and position of agent pacman
+    epsilon = epsilon_max;
     tileMap.initTileMap();
     pacman = tileMap.getNewPacman(velocity);
-    // Reset epsilon
-    epsilon = epsilon_max;
+
     for (let stepIdx = 0; stepIdx < N_steps_max; stepIdx++) {
       // tileMap.draw(ctx);
       // pacman.draw(ctx);
       // await sleep(10);
       // return;
-      //
+
       // Choose action of current state
-      let currentState = tileMap.getCurrentState();
-      let currentPosition = pacman.getPosition();
+      const currentState = tileMap.getCurrentState();
       let newMovingDirection;
       let q_value;
 
@@ -74,19 +66,19 @@ async function trainLoop() {
         q_value = currentState[rndIdx];
         newMovingDirection = rndIdx;
       }
-      Utils.assert(q_value > -1, 'something went wrong');
+      // Utils.assert(q_value > -1, `something went wrong, q_value is ${q_value}`);
 
       // console.log(newMovingDirection);
       // Move agent pacman to new position/state
       pacman.move(newMovingDirection);
 
-      let newState = tileMap.getCurrentState();
+      // Obtain max action from new position
+      const newState = tileMap.getCurrentState();
       const max_q_prime = Math.max(...newState);
 
       // Update current/previous Q-value
-      const reward = tileMap.getReward();
+      const reward = tileMap.getReward(true);
       const new_q_value = q_value + learning_rate * (reward + discount_rate * max_q_prime - q_value);
-      // console.log(epsilon, reward, q_value, max_q_prime, new_q_value);
 
       //tileMap.setQValue(new_q_value, currentPosition.x, currentPosition.y, newMovingDirection);
       currentState[newMovingDirection] = new_q_value;
@@ -97,14 +89,17 @@ async function trainLoop() {
         epsilon = epsilon_min;
       }
 
+      // Check if episode ends prematurely
       if (reward == 100 || reward == -1) {
         // console.log('Exit current episode: ', reward, ', stepIdx / nMaxSteps', stepIdx, N_steps_max);
         break;
-      } else if (reward != 0) {
-        tileMap.clearReward();
       }
     } // End one episode
+
+    tileMap.draw(ctx);
+    await sleep(10); // quick fix for image loading
   } // End all episodes
+
   // Show your best run :)
   tileMap.printQTable();
   tileMap.initTileMap();
@@ -112,21 +107,20 @@ async function trainLoop() {
   tileMap.draw(ctx);
   pacman.draw(ctx);
   gameID = setInterval(() => {
-    gameLoop(tileMap, pacman);
-  }, 100);
+    gameLoop();
+  }, 500);
 }
 
-function gameLoop(tileMap, pacman) {
+function gameLoop() {
   tileMap.draw(ctx);
   // Choose action of current state
   const currentState = tileMap.getCurrentState();
   const q_value = Math.max(...currentState);
   const newMovingDirection = currentState.indexOf(q_value);
-  Utils.assert(q_value > -1, 'something went wrong');
+  Utils.assert(q_value > -1, `something went wrong, q_value is ${q_value}`);
   pacman.move(newMovingDirection);
   pacman.draw(ctx);
   const reward = tileMap.getReward();
-  console.log(reward);
   if (reward == 100) {
     clearInterval(gameID);
   } else if (reward != 0) {
@@ -145,35 +139,11 @@ function getNewRandomMovingDirection(currentState) {
   }
 }
 
-function checkGameOver() {
-  if (!episodeOver) {
-    episodeOver = isGameOver();
-  }
-}
-
-function isGameOver() {
-  return false;
-}
-
-function pause() {
-  return !pacman.madeFirstMove() || gameOver;
-}
-
 window.onload = async () => {
   init();
   //gameID = setInterval(gameLoop, 1000 / 1);
-  await sleep(100); // quick fix for image loading
   trainLoop();
 };
-
-function gameStart(event) {
-  if (event.code == 'Space') {
-    comment.classList.add('invisible');
-    window.removeEventListener('keydown', gameStart);
-    init();
-    gameID = setInterval(gameLoop, 1000 / 1);
-  }
-}
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
