@@ -13,15 +13,15 @@ let tileMap;
 let pacman;
 let gameID = 0;
 
-const N_episodes_max = 4000;
-const N_steps_max = 200;
+const N_episodes_max = 20000;
+const N_steps_max = 100;
 
-const learning_rate = 0.8;
-const discount_rate = 1;
+const learning_rate = 0.5;
+const discount_rate = 0.9;
 let epsilon;
 const epsilon_max = 1.0;
-const epsilon_min = 0.5;
-const decay_rate = 0.01;
+const epsilon_min = 0.1;
+const decay_rate = 0.001;
 
 async function init() {
   tileMap = createTileMap(tileSize);
@@ -32,7 +32,6 @@ async function init() {
   await sleep(100); // quick fix for image loading
   tileMap.draw(ctx);
   pacman.draw(ctx);
-  // ctx.strokeStyle = 'black';
 }
 
 async function trainLoop() {
@@ -51,6 +50,7 @@ async function trainLoop() {
 
       // Choose action of current state
       const currentState = tileMap.getCurrentState();
+      const currentPosition = pacman.getPosition();
       let newMovingDirection;
       let q_value;
 
@@ -59,6 +59,7 @@ async function trainLoop() {
       if (rnd > epsilon) {
         // console.log('exploit');
         q_value = Math.max(...currentState);
+        Utils.assert(q_value != -1, `something went wrong, q_value is ${q_value}`);
         newMovingDirection = currentState.indexOf(q_value);
       } else {
         // console.log('explore');
@@ -66,18 +67,18 @@ async function trainLoop() {
         q_value = currentState[rndIdx];
         newMovingDirection = rndIdx;
       }
-      // Utils.assert(q_value > -1, `something went wrong, q_value is ${q_value}`);
 
       // console.log(newMovingDirection);
       // Move agent pacman to new position/state
       pacman.move(newMovingDirection);
 
-      // Obtain max action from new position
+      // Obtain max action and reward from new position
       const newState = tileMap.getCurrentState();
-      const max_q_prime = Math.max(...newState);
+      const reward = tileMap.getReward(false);
 
       // Update current/previous Q-value
-      const reward = tileMap.getReward(true);
+      const max_q_prime = Math.max(...newState);
+      Utils.assert(max_q_prime != -1, `something went wrong, q_value is ${max_q_prime}`);
       const new_q_value = q_value + learning_rate * (reward + discount_rate * max_q_prime - q_value);
 
       //tileMap.setQValue(new_q_value, currentPosition.x, currentPosition.y, newMovingDirection);
@@ -90,14 +91,16 @@ async function trainLoop() {
       }
 
       // Check if episode ends prematurely
-      if (reward == 100 || reward == -1) {
-        // console.log('Exit current episode: ', reward, ', stepIdx / nMaxSteps', stepIdx, N_steps_max);
+      if (reward == 100) {
+        console.log('Exit current episode: ', reward, ', stepIdx / nMaxSteps', stepIdx, N_steps_max);
         break;
       }
     } // End one episode
 
-    tileMap.draw(ctx);
-    await sleep(10); // quick fix for image loading
+    if (episodeIdx % 100 == 0) {
+      tileMap.draw(ctx);
+      await sleep(100); // quick fix for image loading
+    }
   } // End all episodes
 
   // Show your best run :)
@@ -117,14 +120,14 @@ function gameLoop() {
   const currentState = tileMap.getCurrentState();
   const q_value = Math.max(...currentState);
   const newMovingDirection = currentState.indexOf(q_value);
-  Utils.assert(q_value > -1, `something went wrong, q_value is ${q_value}`);
+  Utils.assert(q_value != -1, `something went wrong, q_value is ${q_value}`);
   pacman.move(newMovingDirection);
   pacman.draw(ctx);
   const reward = tileMap.getReward();
   if (reward == 100) {
     clearInterval(gameID);
   } else if (reward != 0) {
-    tileMap.clearReward();
+    //tileMap.setReward(0);
   }
 }
 
@@ -160,4 +163,11 @@ function getRandomInt(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// https://stackoverflow.com/questions/19717931/find-next-highest-number-in-array-jquery
+function getNextHighestIndex(arr, value) {
+  let i = arr.length;
+  while (arr[--i] > value);
+  return ++i;
 }

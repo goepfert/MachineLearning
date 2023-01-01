@@ -29,18 +29,34 @@ const createTileMap = (tileSize) => {
   // ];
 
   // Kitty Cat
+  // const masterTileMap = [
+  //   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  //   [1, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  //   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  //   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  //   [1, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 1],
+  //   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  //   [1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 1],
+  //   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  //   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  //   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  //   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 1],
+  //   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  // ];
+
+  // Kitty Cat
   const masterTileMap = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 7, 1, 0, 0, 0, 0, 0, 0, 4, 0, 1],
-    [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-    [1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1],
-    [1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1],
-    [1, 0, 0, 1, 0, 1, 0, 2, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 4, 0, 0, 0, 0, 1, 1, 1, 1, 1],
-    [1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 9, 1],
+    [1, 7, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 1],
+    [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1],
+    [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1],
+    [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1],
+    [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 4, 0, 1, 1, 1, 0, 2, 1],
+    [1, 0, 4, 0, 4, 0, 1, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 1, 9, 0, 0, 0, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   ];
 
@@ -142,12 +158,6 @@ const createTileMap = (tileSize) => {
     canvas.height = tileMap.length * tileSize;
   }
 
-  function clearReward() {
-    Utils.assert(pacman != undefined, 'alarm: no pacman');
-    const pos = pacman.getPosition();
-    tileMap[pos.y / tileSize][pos.x / tileSize] = 0;
-  }
-
   function initTileMap() {
     tileMap = [];
     tileMap = structuredClone(masterTileMap);
@@ -161,10 +171,10 @@ const createTileMap = (tileSize) => {
     qTable.forEach((row, rowIdx) => {
       row.forEach((action, colIdx) => {
         const tile = tileMap[rowIdx][colIdx];
-        const r1 = Math.random() / 100;
-        const r2 = Math.random() / 100;
-        const r3 = Math.random() / 100;
-        const r4 = Math.random() / 100;
+        const r1 = 0; //Math.random() / 100;
+        const r2 = 0; //Math.random() / 100;
+        const r3 = 0; //Math.random() / 100;
+        const r4 = 0; //Math.random() / 100;
         qTable[rowIdx][colIdx] = [r1, r2, r3, r4];
         if (tile == 1) {
           // Wall
@@ -222,21 +232,25 @@ const createTileMap = (tileSize) => {
     // 0 - 0 reward, nothing
     // 1 - wall, shall be excluded in possible actions
     // 2 - +1 reward,
+    // 3 - 0, just for testing
     // 4 - -10 reward, poison, end episode
     // 7 - 0 reward, start position
     // 9 - +100 reward, goal, end episode
     switch (tile) {
+      case 0:
+        reward = 0;
+        if (clearAfter) {
+          tileMap[pos.y / tileSize][pos.x / tileSize] = 0;
+        }
+        break;
       case 2:
-        reward = 1;
+        reward = 5;
         if (clearAfter) {
           tileMap[pos.y / tileSize][pos.x / tileSize] = 0;
         }
         break;
       case 4:
         reward = -10;
-        if (clearAfter) {
-          tileMap[pos.y / tileSize][pos.x / tileSize] = 0;
-        }
         break;
       case 9:
         reward = 100;
@@ -244,6 +258,12 @@ const createTileMap = (tileSize) => {
     }
 
     return reward;
+  }
+
+  function setReward(reward) {
+    Utils.assert(pacman != undefined, 'alarm: no pacman');
+    const pos = pacman.getPosition();
+    tileMap[pos.y / tileSize][pos.x / tileSize] = reward;
   }
 
   function setQValue(newQvalue, x, y, z) {
@@ -260,7 +280,7 @@ const createTileMap = (tileSize) => {
     drawArrow,
     getNewPacman,
     setCanvasSize,
-    clearReward,
+    setReward,
     getCurrentState,
     getReward,
     setQValue,
