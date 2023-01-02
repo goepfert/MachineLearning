@@ -1,6 +1,12 @@
+/**
+ * Confused about variables and properties?
+ * Read this: https://stackoverflow.com/questions/47960160/variable-and-function-declaration-in-classes-in-es6
+ */
 class Cartpole {
   constructor(svgContainer, options) {
-    if (options === undefined) options = new Object();
+    if (options === undefined) {
+      options = new Object();
+    }
     this.options = {
       massC: options.massC || 1,
       massP: options.massP || 1,
@@ -15,6 +21,7 @@ class Cartpole {
     };
     this.options.massSum = this.options.massC + this.options.massP;
     this.initDrawing(svgContainer);
+    this.reset();
   }
 
   initDrawing(svgContainer) {
@@ -66,7 +73,7 @@ class Cartpole {
 
   step(action = 0) {
     if (this.done) {
-      console.error('simulation ended, but called step method again');
+      // console.error('simulation ended, but called step method again');
     }
     if (!(action != 0 || action != 1)) {
       console.error('action', action, 'is no valid action, choose 0 for left and 1 for right.');
@@ -97,6 +104,10 @@ class Cartpole {
     if (this.theta > Math.PI / 15 || this.theta < -Math.PI / 15) {
       this.done = true;
     }
+    return this.getCurrentState();
+  }
+
+  getCurrentState() {
     return {
       state: {
         x: this.x,
@@ -132,9 +143,19 @@ class Cartpole {
       .duration(timestep)
       .attr('x', (d) => this.xScale(d) - cartWidth / 2);
   }
+
   reset() {
     this.x = 0 + Math.random() * 0.01 - 0.005;
     this.theta = 0 + Math.random() * 0.01 - 0.005;
+    this.xdot = 0;
+    this.thetadot = 0;
+    this.done = false;
+    this.reward = 0;
+  }
+
+  setRandom() {
+    this.x = 0 + Math.random() * 2 - 1;
+    this.theta = 0 + (Math.random() * Math.PI) / 30 - Math.PI / 30 / 2;
     this.xdot = 0;
     this.thetadot = 0;
     this.done = false;

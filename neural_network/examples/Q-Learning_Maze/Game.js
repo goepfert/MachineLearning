@@ -96,6 +96,7 @@ async function trainLoop() {
         break;
       }
     } // End one episode
+    // negative reward if N_steps_max hit?
 
     if (episodeIdx % 10 == 0) {
       tileMap.draw(ctx);
