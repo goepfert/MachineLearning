@@ -13,11 +13,11 @@ let tileMap;
 let pacman;
 let gameID = 0;
 
-const N_episodes_max = 20000;
-const N_steps_max = 100;
+const N_episodes_max = 5000;
+const N_steps_max = 150;
 
-const learning_rate = 0.5;
-const discount_rate = 0.9;
+const learning_rate = 0.8;
+const discount_rate = 0.95;
 let epsilon;
 const epsilon_max = 1.0;
 const epsilon_min = 0.1;
@@ -97,7 +97,7 @@ async function trainLoop() {
       }
     } // End one episode
 
-    if (episodeIdx % 100 == 0) {
+    if (episodeIdx % 10 == 0) {
       tileMap.draw(ctx);
       await sleep(100); // quick fix for image loading
     }
