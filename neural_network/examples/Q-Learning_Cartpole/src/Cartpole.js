@@ -1,7 +1,11 @@
 /**
+ * Heavily inspired by https://github.com/UpsetHoneyBadger/cartpole-js
+ *
  * Confused about variables and properties?
  * Read this: https://stackoverflow.com/questions/47960160/variable-and-function-declaration-in-classes-in-es6
  */
+
+import globals from '../globalVar.js';
 class Cartpole {
   constructor(svgContainer, options) {
     if (options === undefined) {
@@ -72,9 +76,6 @@ class Cartpole {
   }
 
   step(action = 0) {
-    // if (this.done) {
-    //   console.error('simulation ended, but called step method again');
-    // }
     if (!(action != 0 || action != 1)) {
       console.error('action', action, 'is no valid action, choose 0 for left and 1 for right.');
       return;
@@ -100,27 +101,39 @@ class Cartpole {
 
     this.#calcReward();
 
-    // if (!this.done) {
-    //   this.reward++;
-    // }
-    // if (this.theta > Math.PI / 15 || this.theta < -Math.PI / 15) {
-    //   this.done = true;
-    // }
     return this.getCurrentState();
   }
 
   #calcReward() {
-    if (this.x > -2.4 && this.x < 2.4 && this.theta > -Math.PI / 15 && this.theta < Math.PI / 15) {
+    const x_1 = 0.1;
+    const x_2 = 2.4;
+
+    if (
+      this.x > -x_1 &&
+      this.x < x_1 &&
+      this.xdot > -x_1 &&
+      this.xdot < x_1 &&
+      this.theta > -globals.one_degree &&
+      this.theta < globals.one_degree
+    ) {
+      this.reward = this.reward + 5;
+    } else if (
+      this.x > -x_2 &&
+      this.x < x_2 &&
+      this.xdot > -x_2 &&
+      this.xdot < x_2 &&
+      this.theta > -globals.twelve_degrees &&
+      this.theta < globals.twelve_degrees
+    ) {
       this.reward++;
     } else {
       if (this.reward > 0) {
-        this.reward--;
+        //this.reward--;
       }
     }
 
-    if (this.x < -3.0 || this.x > 3.0 || this.theta < -Math.PI / 5 || this.theta > Math.PI / 5) {
+    if (this.x < -4.0 || this.x > 4.0 || this.theta < -globals.fifty_degrees || this.theta > globals.fifty_degrees) {
       this.done = true;
-      // at least no reward, maybe --?
     }
   }
 
@@ -162,9 +175,9 @@ class Cartpole {
   }
 
   reset() {
-    this.x = 0 + Math.random() * 4.0 - 2.0;
-    this.theta = 0 + (Math.random() * Math.PI) / 10 - Math.PI / 10 / 2;
-    this.xdot = 0 + Math.random() * 0.1 - 0.05;
+    this.x = 0; // + Math.random() * 2.0 - 1.0;
+    this.theta = 0; // + Math.random() * globals.six_degrees - globals.six_degrees / 2;
+    this.xdot = 0; // + Math.random() * 0.01 - 0.005;
     this.thetadot = 0;
     this.done = false;
     this.reward = 0;

@@ -1,16 +1,16 @@
-//https://github.com/UpsetHoneyBadger/cartpole-js
 import Cartpole from './src/Cartpole.js';
 import Utils from '../../../Utils.js';
+import globals from './globalVar.js';
 
 const height = 300;
 const width = 500;
 const frameRate = 30;
 
 let svgContainer = d3.select('#cartpole-drawing').attr('height', height).attr('width', width);
-let cartpole = new Cartpole(svgContainer, { dt: 0.01, forceMult: 10 });
+let cartpole = new Cartpole(svgContainer, { dt: 0.01, forceMult: 15 });
 
-const N_episodes_max = 100000;
-const N_steps_max = 200;
+const N_episodes_max = 200000;
+const N_steps_max = 1000;
 
 const learning_rate = 0.95;
 const discount_rate = 0.99;
@@ -19,18 +19,15 @@ const epsilon_max = 1.0;
 const epsilon_min = 0.01;
 const decay_rate = 0.01;
 
+let trained = false;
 let gameID;
 
-const n_bins = 162; // number of states
+const n_bins = 750; // number of states (5x5x6x5)
 let qTable = Array(n_bins)
   .fill()
   .map(() => Array(2).fill(0));
 
 // https://pages.cs.wisc.edu/~finton/qcontroller.html
-const one_degree = Math.PI / 180; /* 2pi/360 */
-const six_degrees = Math.PI / 30;
-const twelve_degrees = Math.PI / 15;
-const fifty_degrees = Math.PI / 3.0;
 function getBin(state) {
   const x = state.x;
   const theta = state.theta;
@@ -38,28 +35,30 @@ function getBin(state) {
   const theta_dot = state.thetadot;
   let bin = 0;
 
-  if (x < -2.4 || x > 2.4 || theta < -twelve_degrees || theta > twelve_degrees) {
-    //return -1; /* signal failure */
-  }
+  if (x < -1) bin = 0;
+  else if (x < -0.3) bin = 1;
+  else if (x < 0.3) bin = 2;
+  else if (x < 0.5) bin = 3;
+  else bin = 4;
 
-  if (x < -0.8) bin = 0;
-  else if (x < 0.8) bin = 1;
-  else bin = 2;
+  if (x_dot < -0.7);
+  else if (x_dot < -0.2) bin += 5;
+  else if (x_dot < 0.2) bin += 10;
+  else if (x_dot < 0.7) bin += 15;
+  else bin += 20;
 
-  if (x_dot < -0.5);
-  else if (x_dot < 0.5) bin += 3;
-  else bin += 6;
+  if (theta < -globals.six_degrees);
+  else if (theta < -globals.one_degree) bin += 25;
+  else if (theta < 0) bin += 50;
+  else if (theta < globals.one_degree) bin += 75;
+  else if (theta < globals.six_degrees) bin += 100;
+  else bin += 125;
 
-  if (theta < -six_degrees);
-  else if (theta < -one_degree) bin += 9;
-  else if (theta < 0) bin += 18;
-  else if (theta < one_degree) bin += 27;
-  else if (theta < six_degrees) bin += 36;
-  else bin += 45;
-
-  if (theta_dot < -fifty_degrees);
-  else if (theta_dot < fifty_degrees) bin += 54;
-  else bin += 108;
+  if (theta_dot < -globals.fifty_degrees);
+  else if (theta_dot < -globals.twelve_degrees) bin += 150;
+  else if (theta_dot < globals.twelve_degrees) bin += 300;
+  else if (theta_dot < globals.fifty_degrees) bin += 450;
+  else bin += 600;
 
   return bin;
 }
@@ -142,18 +141,25 @@ function tryToBalance() {
 
 function gameLoop() {
   tryToBalance();
-  const { reward, done } = cartpole.getCurrentState();
+  const { state, reward, done } = cartpole.getCurrentState();
   if (done) {
     clearInterval(gameID);
+    console.log('last state: ', state);
   }
   document.getElementById('rewardP').innerHTML = 'Reward: ' + reward;
   document.getElementById('doneP').innerHTML = 'Done: ' + done;
   cartpole.render((1 / frameRate) * 1000);
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-  await trainLoop();
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('train-button').addEventListener('click', async (e) => {
+    await trainLoop();
+    trained = true;
+  });
+
   document.getElementById('cartpole-drawing').addEventListener('click', (e) => {
+    if (!trained) return;
+
     clearInterval(gameID);
     cartpole.reset();
     gameID = setInterval(() => {
