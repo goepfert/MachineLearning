@@ -4,33 +4,33 @@ import Utils from '../../../Utils.js';
 
 const height = 300;
 const width = 500;
-const frameRate = 10;
+const frameRate = 30;
 
 let svgContainer = d3.select('#cartpole-drawing').attr('height', height).attr('width', width);
 let cartpole = new Cartpole(svgContainer, { dt: 0.01, forceMult: 10 });
 
-const n_bins = 162; // number of states
-const N_episodes_max = 1000;
+const N_episodes_max = 100000;
 const N_steps_max = 200;
 
-const learning_rate = 0.8;
-const discount_rate = 0.95;
+const learning_rate = 0.95;
+const discount_rate = 0.99;
 let epsilon;
 const epsilon_max = 1.0;
-const epsilon_min = 0.1;
-const decay_rate = 0.001;
+const epsilon_min = 0.01;
+const decay_rate = 0.01;
 
 let gameID;
 
+const n_bins = 162; // number of states
 let qTable = Array(n_bins)
   .fill()
   .map(() => Array(2).fill(0));
 
 // https://pages.cs.wisc.edu/~finton/qcontroller.html
-const one_degree = 0.0174532; /* 2pi/360 */
-const six_degrees = 0.1047192;
-const twelve_degrees = 0.2094384;
-const fifty_degrees = 0.87266;
+const one_degree = Math.PI / 180; /* 2pi/360 */
+const six_degrees = Math.PI / 30;
+const twelve_degrees = Math.PI / 15;
+const fifty_degrees = Math.PI / 3.0;
 function getBin(state) {
   const x = state.x;
   const theta = state.theta;
@@ -68,7 +68,7 @@ async function trainLoop() {
   for (let episodeIdx = 0; episodeIdx < N_episodes_max; episodeIdx++) {
     console.log('starting new episode ', episodeIdx, ' / ', N_episodes_max);
     epsilon = epsilon_max;
-    cartpole.setRandom();
+    cartpole.reset();
 
     for (let stepIdx = 0; stepIdx < N_steps_max; stepIdx++) {
       const { state: currentState } = cartpole.getCurrentState();
@@ -93,7 +93,6 @@ async function trainLoop() {
 
       Utils.assert(action == 0 || action == 1, `action jackson ${action}`);
       const { state: newState, reward, done } = cartpole.step(action);
-
       const newBin = getBin(newState);
 
       // console.log(bin, newBin);
@@ -112,23 +111,22 @@ async function trainLoop() {
       }
 
       if (done) {
-        console.log('Exit current episode: ', reward, ', episodeIdx / N_episodes_max', episodeIdx, N_episodes_max);
+        console.log('Exit current episode with reward: ', reward, ', stepIdx / nMaxSteps', stepIdx, N_steps_max);
+        // console.log(newState);
         break;
       }
     } // END one episode
 
-    if (episodeIdx % 10 == 0) {
-      // document.getElementById('rewardP').innerHTML = 'Reward: ' + reward;
-      // document.getElementById('doneP').innerHTML = 'Done: ' + done;
-      cartpole.render((1 / frameRate) * 1000);
-      await Utils.sleep_ms(100); // quick fix for image loading
-    }
+    // if (episodeIdx % 10 == 0) {
+    //   cartpole.render((1 / frameRate) * 1000);
+    //   await Utils.sleep_ms(100); // quick fix for image loading
+    // }
   } // END all episodes
 
   console.table(qTable);
 }
 
-function show() {
+function tryToBalance() {
   const { state: currentState } = cartpole.getCurrentState();
   const bin = getBin(currentState);
   let q_value;
@@ -137,24 +135,29 @@ function show() {
   q_value = Math.max(...qTable[bin]);
   Utils.assert(q_value != -1, `something went wrong, q_value is ${q_value}`);
   action = qTable[bin].indexOf(q_value);
-  console.log('🚀 ~ file: main.js:140 ~ show ~ action', action);
+  // console.log('🚀 ~ file: main.js:140 ~ show ~ action', action);
   Utils.assert(action == 0 || action == 1, `action jackson ${action}`);
   cartpole.step(action);
 }
 
+function gameLoop() {
+  tryToBalance();
+  const { reward, done } = cartpole.getCurrentState();
+  if (done) {
+    clearInterval(gameID);
+  }
+  document.getElementById('rewardP').innerHTML = 'Reward: ' + reward;
+  document.getElementById('doneP').innerHTML = 'Done: ' + done;
+  cartpole.render((1 / frameRate) * 1000);
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   await trainLoop();
-  cartpole.reset();
-  cartpole.setRandom();
-
-  gameID = setInterval(() => {
-    show();
-    const { reward, done } = cartpole.getCurrentState();
-    if (done) {
-      //clearInterval(gameID);
-    }
-    document.getElementById('rewardP').innerHTML = 'Reward: ' + reward;
-    document.getElementById('doneP').innerHTML = 'Done: ' + done;
-    cartpole.render((1 / frameRate) * 1000);
-  }, (1 / frameRate) * 1000);
+  document.getElementById('cartpole-drawing').addEventListener('click', (e) => {
+    clearInterval(gameID);
+    cartpole.reset();
+    gameID = setInterval(() => {
+      gameLoop();
+    }, (1 / frameRate) * 1000);
+  });
 });

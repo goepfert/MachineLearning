@@ -72,9 +72,9 @@ class Cartpole {
   }
 
   step(action = 0) {
-    if (this.done) {
-      // console.error('simulation ended, but called step method again');
-    }
+    // if (this.done) {
+    //   console.error('simulation ended, but called step method again');
+    // }
     if (!(action != 0 || action != 1)) {
       console.error('action', action, 'is no valid action, choose 0 for left and 1 for right.');
       return;
@@ -98,13 +98,30 @@ class Cartpole {
     this.x = this.x + this.xdot * dt;
     this.theta = this.theta + this.thetadot * dt;
 
-    if (!this.done) {
-      this.reward++;
-    }
-    if (this.theta > Math.PI / 15 || this.theta < -Math.PI / 15) {
-      this.done = true;
-    }
+    this.#calcReward();
+
+    // if (!this.done) {
+    //   this.reward++;
+    // }
+    // if (this.theta > Math.PI / 15 || this.theta < -Math.PI / 15) {
+    //   this.done = true;
+    // }
     return this.getCurrentState();
+  }
+
+  #calcReward() {
+    if (this.x > -2.4 && this.x < 2.4 && this.theta > -Math.PI / 15 && this.theta < Math.PI / 15) {
+      this.reward++;
+    } else {
+      if (this.reward > 0) {
+        this.reward--;
+      }
+    }
+
+    if (this.x < -3.0 || this.x > 3.0 || this.theta < -Math.PI / 5 || this.theta > Math.PI / 5) {
+      this.done = true;
+      // at least no reward, maybe --?
+    }
   }
 
   getCurrentState() {
@@ -145,18 +162,9 @@ class Cartpole {
   }
 
   reset() {
-    this.x = 0 + Math.random() * 0.01 - 0.005;
-    this.theta = 0 + Math.random() * 0.01 - 0.005;
-    this.xdot = 0;
-    this.thetadot = 0;
-    this.done = false;
-    this.reward = 0;
-  }
-
-  setRandom() {
-    this.x = 0 + Math.random() * 2 - 1;
-    this.theta = 0 + (Math.random() * Math.PI) / 30 - Math.PI / 30 / 2;
-    this.xdot = 0;
+    this.x = 0 + Math.random() * 4.0 - 2.0;
+    this.theta = 0 + (Math.random() * Math.PI) / 10 - Math.PI / 10 / 2;
+    this.xdot = 0 + Math.random() * 0.1 - 0.05;
     this.thetadot = 0;
     this.done = false;
     this.reward = 0;
