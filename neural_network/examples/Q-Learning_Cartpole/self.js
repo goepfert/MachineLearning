@@ -5,6 +5,7 @@ const width = 500;
 const frameRate = 30;
 
 let action = 0;
+let nSteps = 0;
 
 document.addEventListener('DOMContentLoaded', () => {
   let svgContainer = d3.select('#cartpole-drawing').attr('height', height).attr('width', width);
@@ -14,9 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const { state, reward, done } = c.step(action);
     if (!done) {
       action = 0;
-      document.getElementById('rewardP').innerHTML = 'Reward: ' + reward;
+      document.getElementById('stepP').innerHTML = 'Steps: ' + nSteps;
       document.getElementById('doneP').innerHTML = 'Done: ' + done;
       c.render((1 / frameRate) * 1000);
+      nSteps++;
     }
   }, (1 / frameRate) * 1000);
 
@@ -24,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     switch (event.keyCode) {
       // Spacebar
       case 32:
+        nSteps = 0;
         c.reset();
         break;
       // Left

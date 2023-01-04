@@ -21,8 +21,10 @@ const decay_rate = 0.005;
 
 let trained = false;
 let gameID;
+let nSteps = 0;
 
-const n_bins = 750; // number of states (5x5x6x5)
+// const n_bins = 750; // number of states (5x5x6x5)
+const n_bins = 162; // number of states (3x3x6x3)
 let qTable = Array(n_bins)
   .fill()
   .map(() => Array(2).fill(0));
@@ -35,30 +37,53 @@ function getBin(state) {
   const theta_dot = state.thetadot;
   let bin = 0;
 
-  if (x < -1) bin = 0;
-  else if (x < -0.3) bin = 1;
-  else if (x < 0.3) bin = 2;
-  else if (x < 0.5) bin = 3;
-  else bin = 4;
+  // 162 bins
+  if (x < -0.8) bin = 0;
+  else if (x < 0.8) bin = 1;
+  else bin = 2;
 
-  if (x_dot < -0.7);
-  else if (x_dot < -0.2) bin += 5;
-  else if (x_dot < 0.2) bin += 10;
-  else if (x_dot < 0.7) bin += 15;
-  else bin += 20;
+  if (x_dot < -0.5);
+  else if (x_dot < 0.5) bin += 3;
+  else bin += 6;
 
   if (theta < -globals.six_degrees);
-  else if (theta < -globals.one_degree) bin += 25;
-  else if (theta < 0) bin += 50;
-  else if (theta < globals.one_degree) bin += 75;
-  else if (theta < globals.six_degrees) bin += 100;
-  else bin += 125;
+  else if (theta < -globals.one_degree) bin += 9;
+  else if (theta < 0) bin += 18;
+  else if (theta < globals.one_degree) bin += 27;
+  else if (theta < globals.six_degrees) bin += 36;
+  else bin += 45;
 
   if (theta_dot < -globals.fifty_degrees);
-  else if (theta_dot < -globals.twelve_degrees) bin += 150;
-  else if (theta_dot < globals.twelve_degrees) bin += 300;
-  else if (theta_dot < globals.fifty_degrees) bin += 450;
-  else bin += 600;
+  else if (theta_dot < globals.fifty_degrees) bin += 54;
+  else bin += 108;
+
+  /**
+   * 750 bins ... too much
+   */
+  // if (x < -1) bin = 0;
+  // else if (x < -0.3) bin = 1;
+  // else if (x < 0.3) bin = 2;
+  // else if (x < 0.5) bin = 3;
+  // else bin = 4;
+
+  // if (x_dot < -0.7);
+  // else if (x_dot < -0.2) bin += 5;
+  // else if (x_dot < 0.2) bin += 10;
+  // else if (x_dot < 0.7) bin += 15;
+  // else bin += 20;
+
+  // if (theta < -globals.six_degrees);
+  // else if (theta < -globals.one_degree) bin += 25;
+  // else if (theta < 0) bin += 50;
+  // else if (theta < globals.one_degree) bin += 75;
+  // else if (theta < globals.six_degrees) bin += 100;
+  // else bin += 125;
+
+  // if (theta_dot < -globals.fifty_degrees);
+  // else if (theta_dot < -globals.twelve_degrees) bin += 150;
+  // else if (theta_dot < globals.twelve_degrees) bin += 300;
+  // else if (theta_dot < globals.fifty_degrees) bin += 450;
+  // else bin += 600;
 
   return bin;
 }
@@ -67,6 +92,7 @@ function getBin(state) {
 async function trainLoop() {
   console.log('start training loop ...');
   for (let episodeIdx = 0; episodeIdx < N_episodes_max; episodeIdx++) {
+    if (episodeIdx % 1000 == 0) console.log('starting epside:', episodeIdx, ' of ', N_episodes_max);
     //console.log('starting new episode ', episodeIdx, ' / ', N_episodes_max);
     epsilon = epsilon_max;
     cartpole.reset();
@@ -156,9 +182,11 @@ function gameLoop() {
     clearInterval(gameID);
     console.log('last state: ', state);
   }
-  document.getElementById('rewardP').innerHTML = 'Reward: ' + reward;
+  document.getElementById('stepP').innerHTML = 'Step: ' + nSteps;
+  document.getElementById('rewardP').innerHTML = 'Reward: ' + reward.toFixed(1);
   document.getElementById('doneP').innerHTML = 'Done: ' + done;
   cartpole.render((1 / frameRate) * 1000);
+  nSteps++;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -169,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('cartpole-drawing').addEventListener('click', (e) => {
     if (!trained) return;
-
+    nSteps = 0;
     clearInterval(gameID);
     cartpole.reset();
     gameID = setInterval(() => {

@@ -105,32 +105,7 @@ class Cartpole {
   }
 
   #calcReward() {
-    const x_1 = 0.1;
-    const x_2 = 2.4;
-
-    if (
-      // this.x > -x_1 &&
-      // this.x < x_1 &&
-      this.xdot > -x_1 &&
-      this.xdot < x_1 &&
-      this.theta > -globals.one_degree &&
-      this.theta < globals.one_degree
-    ) {
-      this.reward = this.reward + 5;
-    } else if (
-      this.x > -x_2 &&
-      this.x < x_2 &&
-      this.xdot > -x_2 &&
-      this.xdot < x_2 &&
-      this.theta > -globals.six_degrees &&
-      this.theta < globals.six_degrees
-    ) {
-      this.reward++;
-    } else {
-      if (this.reward > 0) {
-        //this.reward--;
-      }
-    }
+    this.reward += 1 - (this.x * this.x) / 8 - (this.theta * this.theta) / 1;
 
     if (this.x < -4.0 || this.x > 4.0 || this.theta < -globals.fifty_degrees || this.theta > globals.fifty_degrees) {
       this.done = true;
@@ -176,8 +151,8 @@ class Cartpole {
 
   reset() {
     this.x = 0 + Math.random() * 2.0 - 1.0;
-    this.theta = 0 + Math.random() * globals.six_degrees - globals.six_degrees / 2;
-    this.xdot = 0 + Math.random() * 0.01 - 0.005;
+    this.theta = 0 + Math.random() * globals.twelve_degrees - globals.twelve_degrees / 2;
+    this.xdot = 0 + Math.random() * 0.1 - 0.05;
     this.thetadot = 0;
     this.done = false;
     this.reward = 0;
