@@ -7,7 +7,7 @@ const width = 500;
 const frameRate = 30;
 
 let svgContainer = d3.select('#cartpole-drawing').attr('height', height).attr('width', width);
-let cartpole = new Cartpole(svgContainer, { dt: 0.01, forceMult: 15 });
+let cartpole = new Cartpole(svgContainer, { dt: 0.01, forceMult: 5, g: 1 });
 
 const N_episodes_max = 200000;
 const N_steps_max = 1000;
@@ -17,7 +17,7 @@ const discount_rate = 0.99;
 let epsilon;
 const epsilon_max = 1.0;
 const epsilon_min = 0.01;
-const decay_rate = 0.01;
+const decay_rate = 0.005;
 
 let trained = false;
 let gameID;
@@ -63,9 +63,11 @@ function getBin(state) {
   return bin;
 }
 
+// The Cartpole does never get an action of zero ...
 async function trainLoop() {
+  console.log('start training loop ...');
   for (let episodeIdx = 0; episodeIdx < N_episodes_max; episodeIdx++) {
-    console.log('starting new episode ', episodeIdx, ' / ', N_episodes_max);
+    //console.log('starting new episode ', episodeIdx, ' / ', N_episodes_max);
     epsilon = epsilon_max;
     cartpole.reset();
 
@@ -74,6 +76,7 @@ async function trainLoop() {
       const bin = getBin(currentState);
 
       let q_value;
+      let actionIdx = -1;
       let action = -1;
 
       // Exploit or explore
@@ -82,15 +85,18 @@ async function trainLoop() {
         // console.log('exploit');
         q_value = Math.max(...qTable[bin]);
         Utils.assert(q_value != -1, `something went wrong, q_value is ${q_value}`);
-        action = qTable[bin].indexOf(q_value);
+        actionIdx = qTable[bin].indexOf(q_value);
       } else {
         // console.log('explore');
         const rndIdx = Utils.getRandomInt(0, 1);
         q_value = qTable[bin][rndIdx];
-        action = rndIdx;
+        actionIdx = rndIdx;
       }
 
-      Utils.assert(action == 0 || action == 1, `action jackson ${action}`);
+      // to get the real action
+      if (actionIdx == 1) action = 1;
+
+      Utils.assert(action == -1 || action == 1, `action jackson ${action}`);
       const { state: newState, reward, done } = cartpole.step(action);
       const newBin = getBin(newState);
 
@@ -101,7 +107,7 @@ async function trainLoop() {
       Utils.assert(max_q_prime != -1, `something went wrong, q_value is ${max_q_prime}`);
       const new_q_value = q_value + learning_rate * (reward + discount_rate * max_q_prime - q_value);
 
-      qTable[bin][action] = new_q_value;
+      qTable[bin][actionIdx] = new_q_value;
 
       // Reduce/Decay epsilon
       epsilon = epsilon * (1 - decay_rate);
@@ -110,7 +116,7 @@ async function trainLoop() {
       }
 
       if (done) {
-        console.log('Exit current episode with reward: ', reward, ', stepIdx / nMaxSteps', stepIdx, N_steps_max);
+        // console.log('Exit current episode with reward: ', reward, ', stepIdx / nMaxSteps', stepIdx, N_steps_max);
         // console.log(newState);
         break;
       }
@@ -123,19 +129,23 @@ async function trainLoop() {
   } // END all episodes
 
   console.table(qTable);
+  console.log('training finished');
 }
 
 function tryToBalance() {
   const { state: currentState } = cartpole.getCurrentState();
   const bin = getBin(currentState);
   let q_value;
+  let actionIdx = -1;
   let action = -1;
 
   q_value = Math.max(...qTable[bin]);
   Utils.assert(q_value != -1, `something went wrong, q_value is ${q_value}`);
-  action = qTable[bin].indexOf(q_value);
-  // console.log('🚀 ~ file: main.js:140 ~ show ~ action', action);
-  Utils.assert(action == 0 || action == 1, `action jackson ${action}`);
+  actionIdx = qTable[bin].indexOf(q_value);
+  // to get the real action
+  if (actionIdx == 1) action = 1;
+  //console.log('action', action);
+  Utils.assert(action == -1 || action == 0 || action == 1, `action jackson ${action}`);
   cartpole.step(action);
 }
 

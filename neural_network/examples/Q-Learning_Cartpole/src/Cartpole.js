@@ -76,12 +76,12 @@ class Cartpole {
   }
 
   step(action = 0) {
-    if (!(action != 0 || action != 1)) {
-      console.error('action', action, 'is no valid action, choose 0 for left and 1 for right.');
+    if (!(action != -1 || action != 0 || action != 1)) {
+      console.error('action', action, 'is no valid action, choose -1 for left, 1 for right and 0 for nothing.');
       return;
     }
     const { massC, massP, poleL, forceMult, massSum, dt, g } = this.options;
-    let F = (action == 0 ? -1 : 1) * forceMult;
+    let F = action * forceMult;
 
     const thetaacc_num =
       g * Math.sin(this.theta) +
@@ -109,8 +109,8 @@ class Cartpole {
     const x_2 = 2.4;
 
     if (
-      this.x > -x_1 &&
-      this.x < x_1 &&
+      // this.x > -x_1 &&
+      // this.x < x_1 &&
       this.xdot > -x_1 &&
       this.xdot < x_1 &&
       this.theta > -globals.one_degree &&
@@ -122,8 +122,8 @@ class Cartpole {
       this.x < x_2 &&
       this.xdot > -x_2 &&
       this.xdot < x_2 &&
-      this.theta > -globals.twelve_degrees &&
-      this.theta < globals.twelve_degrees
+      this.theta > -globals.six_degrees &&
+      this.theta < globals.six_degrees
     ) {
       this.reward++;
     } else {
@@ -175,9 +175,9 @@ class Cartpole {
   }
 
   reset() {
-    this.x = 0; // + Math.random() * 2.0 - 1.0;
-    this.theta = 0; // + Math.random() * globals.six_degrees - globals.six_degrees / 2;
-    this.xdot = 0; // + Math.random() * 0.01 - 0.005;
+    this.x = 0 + Math.random() * 2.0 - 1.0;
+    this.theta = 0 + Math.random() * globals.six_degrees - globals.six_degrees / 2;
+    this.xdot = 0 + Math.random() * 0.01 - 0.005;
     this.thetadot = 0;
     this.done = false;
     this.reward = 0;
