@@ -1,5 +1,5 @@
 import Cartpole from './src/Cartpole.js';
-import Utils from '../../../Utils.js';
+import Utils from '../../Utils.js';
 import globals from './globalVar.js';
 
 const height = 300;
@@ -91,9 +91,13 @@ function getBin(state) {
 // The Cartpole does never get an action of zero ...
 async function trainLoop() {
   console.log('start training loop ...');
-  for (let episodeIdx = 0; episodeIdx < N_episodes_max; episodeIdx++) {
-    if (episodeIdx % 1000 == 0) console.log('starting epside:', episodeIdx, ' of ', N_episodes_max);
-    //console.log('starting new episode ', episodeIdx, ' / ', N_episodes_max);
+  for (let episodeIdx = 1; episodeIdx <= N_episodes_max; episodeIdx++) {
+    if (episodeIdx % 1000 == 0) {
+      //console.log('starting epside:', episodeIdx, ' of ', N_episodes_max);
+      //console.log('starting new episode ', episodeIdx, ' / ', N_episodes_max);
+      document.getElementById('trainedP').innerHTML = `training ... ${episodeIdx} / ${N_episodes_max}`;
+      await Utils.sleep_ms(1);
+    }
     epsilon = epsilon_max;
     // cartpole.reset();
     cartpole.random();
@@ -148,11 +152,6 @@ async function trainLoop() {
         break;
       }
     } // END one episode
-
-    // if (episodeIdx % 10 == 0) {
-    //   cartpole.render((1 / frameRate) * 1000);
-    //   await Utils.sleep_ms(100); // quick fix for image loading
-    // }
   } // END all episodes
 
   console.table(qTable);
@@ -192,17 +191,42 @@ function gameLoop() {
 
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('train-button').addEventListener('click', async (e) => {
-    await trainLoop();
-    trained = true;
+    if (!trained) {
+      document.getElementById('trainedP').innerHTML = '... training ...';
+      await Utils.sleep_ms(1);
+      await trainLoop();
+      trained = true;
+      document.getElementById('trainedP').innerHTML = ' training finised, hit Spacebar to start/reset pole';
+    }
   });
 
-  document.getElementById('cartpole-drawing').addEventListener('click', (e) => {
-    if (!trained) return;
-    nSteps = 0;
-    clearInterval(gameID);
-    cartpole.reset();
-    gameID = setInterval(() => {
-      gameLoop();
-    }, (1 / frameRate) * 1000);
+  document.addEventListener('keydown', (event) => {
+    switch (event.keyCode) {
+      // Spacebar
+      case 32:
+        if (!trained) {
+          console.log('not trained yet');
+          break;
+        }
+        nSteps = 0;
+        clearInterval(gameID);
+        cartpole.reset();
+        gameID = setInterval(() => {
+          gameLoop();
+        }, (1 / frameRate) * 1000);
+        break;
+      default:
+        break;
+    }
   });
+
+  // document.getElementById('cartpole-drawing').addEventListener('click', (e) => {
+  //   if (!trained) return;
+  //   nSteps = 0;
+  //   clearInterval(gameID);
+  //   cartpole.reset();
+  //   gameID = setInterval(() => {
+  //     gameLoop();
+  //   }, (1 / frameRate) * 1000);
+  // });
 });

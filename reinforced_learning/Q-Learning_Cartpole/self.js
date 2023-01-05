@@ -41,6 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
         action = 0;
         break;
     }
-    console.log(action);
+    // console.log(action);
   });
 });
