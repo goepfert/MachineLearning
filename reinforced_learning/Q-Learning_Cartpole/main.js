@@ -192,8 +192,6 @@ function gameLoop() {
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('train-button').addEventListener('click', async (e) => {
     if (!trained) {
-      document.getElementById('trainedP').innerHTML = '... training ...';
-      await Utils.sleep_ms(1);
       await trainLoop();
       trained = true;
       document.getElementById('trainedP').innerHTML = ' training finised, hit Spacebar to start/reset pole';
