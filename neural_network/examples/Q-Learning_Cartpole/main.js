@@ -9,15 +9,15 @@ const frameRate = 30;
 let svgContainer = d3.select('#cartpole-drawing').attr('height', height).attr('width', width);
 let cartpole = new Cartpole(svgContainer, { dt: 0.01, forceMult: 5, g: 1 });
 
-const N_episodes_max = 200000;
+const N_episodes_max = 400000;
 const N_steps_max = 1000;
 
 const learning_rate = 0.95;
 const discount_rate = 0.99;
 let epsilon;
 const epsilon_max = 1.0;
-const epsilon_min = 0.01;
-const decay_rate = 0.005;
+const epsilon_min = 0.05;
+const decay_rate = 0.025;
 
 let trained = false;
 let gameID;
@@ -95,7 +95,8 @@ async function trainLoop() {
     if (episodeIdx % 1000 == 0) console.log('starting epside:', episodeIdx, ' of ', N_episodes_max);
     //console.log('starting new episode ', episodeIdx, ' / ', N_episodes_max);
     epsilon = epsilon_max;
-    cartpole.reset();
+    // cartpole.reset();
+    cartpole.random();
 
     for (let stepIdx = 0; stepIdx < N_steps_max; stepIdx++) {
       const { state: currentState } = cartpole.getCurrentState();

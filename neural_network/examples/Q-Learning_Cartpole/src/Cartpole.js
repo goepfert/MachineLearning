@@ -105,7 +105,18 @@ class Cartpole {
   }
 
   #calcReward() {
-    this.reward += 1 - (this.x * this.x) / 8 - (this.theta * this.theta) / 1;
+    // reward is zero if x==2.4 and theta 12 degrees (pi/15)
+    this.reward += 1 - (this.x * this.x) / 5.76 - (this.theta * this.theta) / 0.04; // - (this.thetadot * this.thetadot) / 0.04;
+
+    // works also
+    // if (
+    //   this.x > -2.4 &&
+    //   this.x < 2.4 &&
+    //   this.theta > -globals.fifteen_degrees &&
+    //   this.theta < globals.fifteen_degrees
+    // ) {
+    //   this.reward++;
+    // }
 
     if (this.x < -4.0 || this.x > 4.0 || this.theta < -globals.fifty_degrees || this.theta > globals.fifty_degrees) {
       this.done = true;
@@ -153,6 +164,15 @@ class Cartpole {
     this.x = 0 + Math.random() * 2.0 - 1.0;
     this.theta = 0 + Math.random() * globals.twelve_degrees - globals.twelve_degrees / 2;
     this.xdot = 0 + Math.random() * 0.1 - 0.05;
+    this.thetadot = 0;
+    this.done = false;
+    this.reward = 0;
+  }
+
+  random() {
+    this.x = 0 + Math.random() * 2.0 - 1.0;
+    this.theta = 0 + Math.random() * globals.fifteen_degrees - globals.fifteen_degrees / 2;
+    this.xdot = 0 + Math.random() * 0.2 - 0.1;
     this.thetadot = 0;
     this.done = false;
     this.reward = 0;
