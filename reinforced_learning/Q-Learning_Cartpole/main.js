@@ -88,7 +88,7 @@ function getBin(state) {
   return bin;
 }
 
-// The Cartpole does never get an action of zero ...
+// The Cartpole does never get an action of zero ... (!!! Different in the 'human' game !!!)
 async function trainLoop() {
   console.log('start training loop ...');
   for (let episodeIdx = 1; episodeIdx <= N_episodes_max; episodeIdx++) {
@@ -100,7 +100,7 @@ async function trainLoop() {
     }
     epsilon = epsilon_max;
     // cartpole.reset();
-    cartpole.random();
+    cartpole.random(); // a littel bit mor randomness while training
 
     for (let stepIdx = 0; stepIdx < N_steps_max; stepIdx++) {
       const { state: currentState } = cartpole.getCurrentState();
