@@ -43,7 +43,11 @@ class ReplayMemory {
     return out;
   }
 
-  get maxLen() {
+  setMaxLen(maxLen) {
+    this.maxLen = maxLen;
+  }
+
+  getMaxLen() {
     return this.maxLen;
   }
 

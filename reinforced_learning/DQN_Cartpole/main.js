@@ -2,7 +2,7 @@ import Cartpole from './src/Cartpole.js';
 import ReplayMemory from './src/ReplayMemory.js';
 import Utils from '../../Utils.js';
 import globals from './globalVar.js';
-import { createDeepQNetwork } from './src/dqn.js';
+import { createDeepQNetwork, copyWeights } from './src/dqn.js';
 
 tf.setBackend('cpu');
 
@@ -16,175 +16,36 @@ let cartpole = new Cartpole(svgContainer, { dt: 0.01, forceMult: 5, g: 1 });
 // Create networks
 const nn_online = createDeepQNetwork(2);
 const nn_target = createDeepQNetwork(2);
+const syncEveryFrame = 100;
 
 // Create ReplayMemory
-const replayMemory = new ReplayMemory(1000);
+const replayBufferSize = 1000;
+const replayMemory = new ReplayMemory(replayBufferSize);
 
-// Create sequence and fill ReplayMemory
-createSequence(nn_online, replayMemory); // which network should ne matter here
-
-const N_episodes_max = 400000;
-const N_steps_max = 1000;
-
+// Training
+let reset = true;
+const batchSize = 200;
 const learning_rate = 0.95;
 const discount_rate = 0.99;
 let epsilon;
 const epsilon_max = 1.0;
 const epsilon_min = 0.05;
 const decay_rate = 0.025;
+const trainingIterations = 20000;
 
 let trained = false;
 let gameID;
 let nSteps = 0;
 
-// const n_bins = 750; // number of states (5x5x6x5)
-const n_bins = 162; // number of states (3x3x6x3)
-let qTable = Array(n_bins)
-  .fill()
-  .map(() => Array(2).fill(0));
-
-// https://pages.cs.wisc.edu/~finton/qcontroller.html
-function getBin(state) {
-  const x = state.x;
-  const theta = state.theta;
-  const x_dot = state.xdot;
-  const theta_dot = state.thetadot;
-  let bin = 0;
-
-  // 162 bins
-  if (x < -0.8) bin = 0;
-  else if (x < 0.8) bin = 1;
-  else bin = 2;
-
-  if (x_dot < -0.5);
-  else if (x_dot < 0.5) bin += 3;
-  else bin += 6;
-
-  if (theta < -globals.six_degrees);
-  else if (theta < -globals.one_degree) bin += 9;
-  else if (theta < 0) bin += 18;
-  else if (theta < globals.one_degree) bin += 27;
-  else if (theta < globals.six_degrees) bin += 36;
-  else bin += 45;
-
-  if (theta_dot < -globals.fifty_degrees);
-  else if (theta_dot < globals.fifty_degrees) bin += 54;
-  else bin += 108;
-
-  /**
-   * 750 bins ... too much
-   */
-  // if (x < -1) bin = 0;
-  // else if (x < -0.3) bin = 1;
-  // else if (x < 0.3) bin = 2;
-  // else if (x < 0.5) bin = 3;
-  // else bin = 4;
-
-  // if (x_dot < -0.7);
-  // else if (x_dot < -0.2) bin += 5;
-  // else if (x_dot < 0.2) bin += 10;
-  // else if (x_dot < 0.7) bin += 15;
-  // else bin += 20;
-
-  // if (theta < -globals.six_degrees);
-  // else if (theta < -globals.one_degree) bin += 25;
-  // else if (theta < 0) bin += 50;
-  // else if (theta < globals.one_degree) bin += 75;
-  // else if (theta < globals.six_degrees) bin += 100;
-  // else bin += 125;
-
-  // if (theta_dot < -globals.fifty_degrees);
-  // else if (theta_dot < -globals.twelve_degrees) bin += 150;
-  // else if (theta_dot < globals.twelve_degrees) bin += 300;
-  // else if (theta_dot < globals.fifty_degrees) bin += 450;
-  // else bin += 600;
-
-  return bin;
-}
-
-// The Cartpole does never get an action of zero ... (!!! Different in the 'human' game !!!)
-async function trainLoop() {
-  console.log('start training loop ...');
-  for (let episodeIdx = 1; episodeIdx <= N_episodes_max; episodeIdx++) {
-    if (episodeIdx % 1000 == 0) {
-      //console.log('starting epside:', episodeIdx, ' of ', N_episodes_max);
-      //console.log('starting new episode ', episodeIdx, ' / ', N_episodes_max);
-      document.getElementById('trainedP').innerHTML = `training ... ${episodeIdx} / ${N_episodes_max}`;
-      await Utils.sleep_ms(1);
-    }
-    epsilon = epsilon_max;
-    // cartpole.reset();
-    cartpole.random(); // a littel bit mor randomness while training
-
-    for (let stepIdx = 0; stepIdx < N_steps_max; stepIdx++) {
-      const { state: currentState } = cartpole.getCurrentState();
-      const bin = getBin(currentState);
-
-      let q_value;
-      let actionIdx = -1;
-      let action = -1;
-
-      // Exploit or explore
-      let rnd = Math.random();
-      if (rnd > epsilon) {
-        // console.log('exploit');
-        q_value = Math.max(...qTable[bin]);
-        Utils.assert(q_value != -1, `something went wrong, q_value is ${q_value}`);
-        actionIdx = qTable[bin].indexOf(q_value);
-      } else {
-        // console.log('explore');
-        const rndIdx = Utils.getRandomInt(0, 1);
-        q_value = qTable[bin][rndIdx];
-        actionIdx = rndIdx;
-      }
-
-      // to get the real action
-      if (actionIdx == 1) action = 1;
-
-      Utils.assert(action == -1 || action == 1, `action jackson ${action}`);
-      const { state: newState, reward, done } = cartpole.step(action);
-      const newBin = getBin(newState);
-
-      // console.log(bin, newBin);
-
-      // Update current/previous Q-value
-      const max_q_prime = Math.max(...qTable[newBin]);
-      Utils.assert(max_q_prime != -1, `something went wrong, q_value is ${max_q_prime}`);
-      const new_q_value = q_value + learning_rate * (reward + discount_rate * max_q_prime - q_value);
-
-      qTable[bin][actionIdx] = new_q_value;
-
-      // Reduce/Decay epsilon
-      epsilon = epsilon * (1 - decay_rate);
-      if (epsilon < epsilon_min) {
-        epsilon = epsilon_min;
-      }
-
-      if (done) {
-        // console.log('Exit current episode with reward: ', reward, ', stepIdx / nMaxSteps', stepIdx, N_steps_max);
-        // console.log(newState);
-        break;
-      }
-    } // END one episode
-  } // END all episodes
-
-  console.table(qTable);
-  console.log('training finished');
-}
-
 function tryToBalance() {
   const { state: currentState } = cartpole.getCurrentState();
-  const bin = getBin(currentState);
-  let q_value;
-  let actionIdx = -1;
   let action = -1;
 
-  q_value = Math.max(...qTable[bin]);
-  Utils.assert(q_value != -1, `something went wrong, q_value is ${q_value}`);
-  actionIdx = qTable[bin].indexOf(q_value);
-  // to get the real action
-  if (actionIdx == 1) action = 1;
-  //console.log('action', action);
+  tf.tidy(() => {
+    const stateTensor = cartpole.getStateTensor();
+    // https://www.tensorflow.org/api_docs/python/tf/math/argmax
+    action = globals.actions[nn_target.getModel().predict(stateTensor).argMax(-1).dataSync()[0]];
+  });
   Utils.assert(action == -1 || action == 0 || action == 1, `action jackson ${action}`);
   cartpole.step(action);
 }
@@ -203,10 +64,159 @@ function gameLoop() {
   nSteps++;
 }
 
+/**
+ * Play one step
+ */
+function playOneStep(nn_online_model, replayMemory) {
+  if (reset) {
+    epsilon = epsilon_max;
+    cartpole.random(); // a little bit mor randomness while training
+    reset = false;
+  }
+
+  const { state: currentState } = cartpole.getCurrentState();
+  let action = 0;
+
+  // Exploit or explore
+  let rnd = Math.random();
+  if (rnd > epsilon) {
+    // console.log('exploit');
+    tf.tidy(() => {
+      const stateTensor = cartpole.getStateTensor();
+      // https://www.tensorflow.org/api_docs/python/tf/math/argmax
+      action = globals.actions[nn_online_model.predict(stateTensor).argMax(-1).dataSync()[0]];
+    });
+  } else {
+    // console.log('explore');
+    const rndIdx = Utils.getRandomInt(0, 1);
+    action = globals.actions[rndIdx];
+  }
+
+  Utils.assert(action == -1 || action == 1, `action jackson ${action}`);
+  const { state: newState, reward, done } = cartpole.step(action);
+
+  replayMemory.append([currentState, action, reward, newState, done]);
+
+  // Reduce/Decay epsilon
+  epsilon = epsilon * (1 - decay_rate);
+  if (epsilon < epsilon_min) {
+    epsilon = epsilon_min;
+  }
+
+  if (done) {
+    reset = true;
+  }
+}
+
+/**
+ * Create sequence with pure exploration and fill ReplayMemory
+ */
+function createSequence(nn_online_model, replayMemory) {
+  console.log('creating sequence ...');
+  let counter = replayBufferSize;
+
+  while (counter > 0) {
+    playOneStep(nn_online_model, replayMemory);
+    counter--;
+  }
+
+  console.log(replayMemory);
+
+  console.log('finished creating sequence');
+}
+
+/**
+ * Train on batch of replayMemory
+ */
+function trainOnReplayBatch(nn_online_model, nn_target_model, batchSize, optimizer) {
+  const batch = replayMemory.sample(batchSize);
+
+  // //define the loss function
+  const lossFunction = () =>
+    tf.tidy(() => {
+      // example[0] is the state
+      // example[1] is the action
+      // example[2] is the reward
+      // example[3] is the next state
+      // example[4] done
+      // const stateTensor = getStateTensors(batch.map((example) => example[0]));
+      const stateTensor = tf.tensor(
+        batch.map((example) => Object.values(example[0])),
+        [batchSize, 4]
+      );
+      const actionTensor = tf.tensor1d(
+        batch.map((example) => example[1]),
+        'int32'
+      );
+
+      // compute Q value of the current state
+      // note that we use apply() instead of predict
+      // because apply() allow access to the gradient
+      const online = nn_online_model.apply(stateTensor, { training: true });
+      const oneHot = tf.oneHot(actionTensor, globals.actions.length);
+      const qs = online.mul(oneHot).sum(-1);
+
+      // compute the Q value of the next state.
+      // it is R if the next state is terminal
+      // R + max Q(next_state) if the next state is not terminal
+      const rewardTensor = tf.tensor1d(batch.map((example) => example[2]));
+      // const nextStateTensor = getStateTensor(batch.map((example) => example[3]));
+      const nextStateTensor = tf.tensor(
+        batch.map((example) => Object.values(example[3])),
+        [batchSize, 4]
+      );
+      const nextMaxQTensor = nn_target_model.predict(nextStateTensor).max(-1);
+      const status = tf.tensor1d(batch.map((example) => example[4])).asType('float32');
+      // if terminal state then status = 1 => doneMask = 0
+      // if not terminal then status = 0 => doneMask = 1
+      // this will make nextMaxQTensor.mul(doneMask) either 0 or not
+      const doneMask = tf.scalar(1).sub(status);
+      const targetQs = rewardTensor.add(nextMaxQTensor.mul(doneMask).mul(discount_rate));
+
+      // define the mean square error between Q value of current state
+      // and target Q value
+      const mse = tf.losses.meanSquaredError(targetQs, qs);
+      return mse;
+    });
+  // Calculate the gradients of the loss function with respect
+  // to the weights of the online DQN.
+  const grads = tf.variableGrads(lossFunction);
+  // Use the gradients to update the online DQN's
+  optimizer.applyGradients(grads.grads);
+
+  tf.dispose(grads);
+}
+
+/**
+ * Training
+ */
+function train(nn_online_model, nn_target_model, _batchSize, maxIterations) {
+  const optimizer = tf.train.adam(learning_rate);
+
+  reset = true;
+
+  // Training Iterations
+  for (let idx = 0; idx < maxIterations; idx++) {
+    trainOnReplayBatch(nn_online_model, nn_target_model, batchSize, optimizer);
+
+    playOneStep(nn_online_model, replayMemory);
+
+    if (idx % syncEveryFrame === 0) {
+      console.log('sync');
+      copyWeights(nn_target_model, nn_online_model);
+    }
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('train-button').addEventListener('click', async (e) => {
     if (!trained) {
-      await trainLoop();
+      // Create sequence and fill ReplayMemory
+      createSequence(nn_online.getModel(), replayMemory); // which network should ne matter here
+
+      // Train loop
+      train(nn_online.getModel(), nn_target.getModel(), batchSize, trainingIterations);
+
       trained = true;
       document.getElementById('trainedP').innerHTML = ' training finised, hit Spacebar to start/reset pole';
     }

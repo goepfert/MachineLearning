@@ -1,12 +1,12 @@
 function createDeepQNetwork(numActions) {
   function getModel() {
     const model = tf.sequential();
-    model.add(tf.layers.flatten());
-    model.add(tf.layers.dense({ units: 100, activation: 'relu', inputShape: [4] }));
-    //model.add(tf.layers.dropout({ rate: 0.25 }));
+    model.add(tf.layers.dense({ units: 16, activation: 'relu', inputShape: [4] }));
+    model.add(tf.layers.dense({ units: 36, activation: 'relu' }));
+    model.add(tf.layers.dropout({ rate: 0.1 }));
     model.add(tf.layers.dense({ units: numActions }));
 
-    compile_model(model);
+    // compile_model(model);
 
     return model;
   }

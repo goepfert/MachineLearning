@@ -136,6 +136,13 @@ class Cartpole {
     };
   }
 
+  /**
+   * Get current state as a tf.Tensor of shape [1, 4].
+   */
+  getStateTensor() {
+    return tf.tensor2d([[this.x, this.theta, this.xdot, this.thetadot]]);
+  }
+
   render(timestep) {
     const { cartWidth, cartHeight, poleWidth, poleHeight } = this.options;
     this.poleG
