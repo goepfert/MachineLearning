@@ -1,29 +1,11 @@
 function createDeepQNetwork(numActions) {
-  function getModel() {
-    const model = tf.sequential();
-    model.add(tf.layers.dense({ units: 16, activation: 'relu', inputShape: [4] }));
-    model.add(tf.layers.dense({ units: 36, activation: 'relu' }));
-    model.add(tf.layers.dropout({ rate: 0.1 }));
-    model.add(tf.layers.dense({ units: numActions }));
+  const model = tf.sequential();
+  model.add(tf.layers.dense({ inputShape: [4], units: 64, activation: 'relu', kernelInitializer: 'heUniform' }));
+  model.add(tf.layers.dense({ units: 32, activation: 'relu', kernelInitializer: 'heUniform' }));
+  // model.add(tf.layers.dropout({ rate: 0.25 }));
+  model.add(tf.layers.dense({ units: numActions }));
 
-    // compile_model(model);
-
-    return model;
-  }
-
-  function compile_model(model) {
-    const optimizer = tf.train.adam();
-    model.compile({
-      optimizer: optimizer,
-      loss: 'todo',
-      metrics: ['accuracy'],
-    });
-  }
-
-  return {
-    getModel,
-    compile_model,
-  };
+  return model;
 }
 
 /**

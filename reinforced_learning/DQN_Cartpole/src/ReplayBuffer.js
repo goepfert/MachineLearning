@@ -1,20 +1,17 @@
 import Utils from '../../../Utils.js';
 
 /** Replay buffer for DQN training. */
-class ReplayMemory {
+class ReplayBuffer {
   constructor(maxLen) {
     this.maxLen = maxLen;
     this.buffer = [];
+    this.bufferIndices = [];
     for (let i = 0; i < maxLen; i++) {
       this.buffer.push(null);
+      this.bufferIndices.push(i);
     }
     this.index = 0;
     this.length = 0;
-
-    this.bufferIndices_ = [];
-    for (let i = 0; i < maxLen; ++i) {
-      this.bufferIndices_.push(i);
-    }
   }
 
   /**
@@ -34,11 +31,11 @@ class ReplayMemory {
     if (batchSize > this.maxLen) {
       throw new Error(`batchSize (${batchSize}) exceeds buffer length (${this.maxLen})`);
     }
-    this.#shuffle(this.bufferIndices_);
+    this.#shuffle(this.bufferIndices);
 
     const out = [];
-    for (let i = 0; i < batchSize; ++i) {
-      out.push(this.buffer[this.bufferIndices_[i]]);
+    for (let i = 0; i < batchSize; i++) {
+      out.push(this.buffer[this.bufferIndices[i]]);
     }
     return out;
   }
@@ -67,4 +64,4 @@ class ReplayMemory {
   }
 }
 
-export default ReplayMemory;
+export default ReplayBuffer;

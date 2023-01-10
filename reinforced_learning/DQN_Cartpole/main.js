@@ -1,5 +1,10 @@
+/**
+ * Greatly inspired by https://towardsdatascience.com/practical-guide-for-dqn-3b70b1d759bf
+ * and https://github.com/tensorflow/tfjs-examples/tree/master/snake-dqn
+ */
+
 import Cartpole from './src/Cartpole.js';
-import ReplayMemory from './src/ReplayMemory.js';
+import ReplayBuffer from './src/ReplayBuffer.js';
 import Utils from '../../Utils.js';
 import globals from './globalVar.js';
 import { createDeepQNetwork, copyWeights } from './src/dqn.js';
@@ -16,37 +21,36 @@ let cartpole = new Cartpole(svgContainer, { dt: 0.01, forceMult: 5, g: 1 });
 // Create networks
 const nn_online = createDeepQNetwork(2);
 const nn_target = createDeepQNetwork(2);
-const syncEveryFrame = 100;
+const syncEveryFrame = 5;
 
-// Create ReplayMemory
-const replayBufferSize = 1000;
-const replayMemory = new ReplayMemory(replayBufferSize);
+// Create ReplayBuffer
+const replayBufferSize = 500;
+const replayBuffer = new ReplayBuffer(replayBufferSize);
 
 // Training
-let reset = true;
-const batchSize = 200;
-const learning_rate = 0.95;
-const discount_rate = 0.99;
+let resetNextIter = true; // Reset next iteration
+const batchSize = replayBufferSize / 2; // Sample size for parallel training
+const learningRate = 0.01; //0.001;
+const discountRate = 0.99;
 let epsilon;
 const epsilon_max = 1.0;
 const epsilon_min = 0.05;
 const decay_rate = 0.025;
-const trainingIterations = 20000;
+const trainingIterations = 1000;
 
-let trained = false;
+let isTrained = false;
 let gameID;
 let nSteps = 0;
 
 function tryToBalance() {
-  const { state: currentState } = cartpole.getCurrentState();
-  let action = -1;
-
+  let action = 0;
   tf.tidy(() => {
     const stateTensor = cartpole.getStateTensor();
     // https://www.tensorflow.org/api_docs/python/tf/math/argmax
-    action = globals.actions[nn_target.getModel().predict(stateTensor).argMax(-1).dataSync()[0]];
+    action = globals.actions[nn_target.predict(stateTensor).argMax(-1).dataSync()[0]];
   });
-  Utils.assert(action == -1 || action == 0 || action == 1, `action jackson ${action}`);
+  Utils.assert(action == -1 || action == 1, `action jackson ${action}`);
+  console.log('action:', action);
   cartpole.step(action);
 }
 
@@ -65,13 +69,14 @@ function gameLoop() {
 }
 
 /**
- * Play one step
+ * Play one step and append it to the replayBuffer
  */
-function playOneStep(nn_online_model, replayMemory) {
-  if (reset) {
+function playOneStep() {
+  if (resetNextIter) {
+    // console.log('resetting cartpole');
     epsilon = epsilon_max;
     cartpole.random(); // a little bit mor randomness while training
-    reset = false;
+    resetNextIter = false;
   }
 
   const { state: currentState } = cartpole.getCurrentState();
@@ -84,7 +89,7 @@ function playOneStep(nn_online_model, replayMemory) {
     tf.tidy(() => {
       const stateTensor = cartpole.getStateTensor();
       // https://www.tensorflow.org/api_docs/python/tf/math/argmax
-      action = globals.actions[nn_online_model.predict(stateTensor).argMax(-1).dataSync()[0]];
+      action = globals.actions[nn_online.predict(stateTensor).argMax(-1).dataSync()[0]];
     });
   } else {
     // console.log('explore');
@@ -93,9 +98,9 @@ function playOneStep(nn_online_model, replayMemory) {
   }
 
   Utils.assert(action == -1 || action == 1, `action jackson ${action}`);
-  const { state: newState, reward, done } = cartpole.step(action);
+  const { state: nextState, reward, done } = cartpole.step(action);
 
-  replayMemory.append([currentState, action, reward, newState, done]);
+  replayBuffer.append([currentState, action, reward, nextState, done]);
 
   // Reduce/Decay epsilon
   epsilon = epsilon * (1 - decay_rate);
@@ -104,82 +109,76 @@ function playOneStep(nn_online_model, replayMemory) {
   }
 
   if (done) {
-    reset = true;
+    resetNextIter = true;
   }
 }
 
 /**
  * Create sequence with pure exploration and fill ReplayMemory
  */
-function createSequence(nn_online_model, replayMemory) {
+function createSequence() {
   console.log('creating sequence ...');
   let counter = replayBufferSize;
 
   while (counter > 0) {
-    playOneStep(nn_online_model, replayMemory);
+    playOneStep();
     counter--;
   }
 
-  console.log(replayMemory);
-
+  console.log(replayBuffer);
   console.log('finished creating sequence');
 }
 
 /**
  * Train on batch of replayMemory
  */
-function trainOnReplayBatch(nn_online_model, nn_target_model, batchSize, optimizer) {
-  const batch = replayMemory.sample(batchSize);
+function trainOnReplayBatch(optimizer) {
+  const batch = replayBuffer.sample(batchSize);
 
-  // //define the loss function
+  // Define the loss function
   const lossFunction = () =>
     tf.tidy(() => {
-      // example[0] is the state
-      // example[1] is the action
-      // example[2] is the reward
-      // example[3] is the next state
-      // example[4] done
-      // const stateTensor = getStateTensors(batch.map((example) => example[0]));
+      // item[0] state
+      // item[1] action
+      // item[2] reward of next state
+      // item[3] next state
+      // item[4] done
       const stateTensor = tf.tensor(
-        batch.map((example) => Object.values(example[0])),
+        batch.map((item) => Object.values(item[0])),
         [batchSize, 4]
       );
       const actionTensor = tf.tensor1d(
-        batch.map((example) => example[1]),
+        batch.map((item) => item[1]),
         'int32'
       );
 
-      // compute Q value of the current state
-      // note that we use apply() instead of predict
-      // because apply() allow access to the gradient
-      const online = nn_online_model.apply(stateTensor, { training: true });
+      // Compute Q value of the current state
+      // Note that we use apply() instead of predict because apply() allow access to the gradient
+      const online = nn_online.apply(stateTensor, { training: true });
       const oneHot = tf.oneHot(actionTensor, globals.actions.length);
       const qs = online.mul(oneHot).sum(-1);
 
-      // compute the Q value of the next state.
-      // it is R if the next state is terminal
-      // R + max Q(next_state) if the next state is not terminal
-      const rewardTensor = tf.tensor1d(batch.map((example) => example[2]));
-      // const nextStateTensor = getStateTensor(batch.map((example) => example[3]));
+      // Compute the Q value of the next state.
+      // It is R if the next state is terminal and R + max Q(next_state) if the next state is not terminal
+      const rewardTensor = tf.tensor1d(batch.map((item) => item[2]));
       const nextStateTensor = tf.tensor(
-        batch.map((example) => Object.values(example[3])),
+        batch.map((item) => Object.values(item[3])),
         [batchSize, 4]
       );
-      const nextMaxQTensor = nn_target_model.predict(nextStateTensor).max(-1);
-      const status = tf.tensor1d(batch.map((example) => example[4])).asType('float32');
-      // if terminal state then status = 1 => doneMask = 0
-      // if not terminal then status = 0 => doneMask = 1
-      // this will make nextMaxQTensor.mul(doneMask) either 0 or not
+      const nextMaxQTensor = nn_target.predict(nextStateTensor).max(-1);
+      const status = tf.tensor1d(batch.map((item) => item[4])).asType('float32');
+      // If terminal state then status = 1 => doneMask = 0
+      // If not terminal then status = 0 => doneMask = 1
+      // This will make nextMaxQTensor.mul(doneMask) either 0 or not
       const doneMask = tf.scalar(1).sub(status);
-      const targetQs = rewardTensor.add(nextMaxQTensor.mul(doneMask).mul(discount_rate));
+      const targetQs = rewardTensor.add(nextMaxQTensor.mul(doneMask).mul(discountRate));
 
-      // define the mean square error between Q value of current state
-      // and target Q value
+      // Define the mean square error between Q value of current state and target Q value
       const mse = tf.losses.meanSquaredError(targetQs, qs);
       return mse;
     });
-  // Calculate the gradients of the loss function with respect
-  // to the weights of the online DQN.
+
+  // Calculate the gradients of the loss function with respect to the weights of the online DQN.
   const grads = tf.variableGrads(lossFunction);
   // Use the gradients to update the online DQN's
   optimizer.applyGradients(grads.grads);
@@ -190,34 +189,36 @@ function trainOnReplayBatch(nn_online_model, nn_target_model, batchSize, optimiz
 /**
  * Training
  */
-function train(nn_online_model, nn_target_model, _batchSize, maxIterations) {
-  const optimizer = tf.train.adam(learning_rate);
-
-  reset = true;
+function train() {
+  const optimizer = tf.train.adam(learningRate);
+  resetNextIter = true;
 
   // Training Iterations
-  for (let idx = 0; idx < maxIterations; idx++) {
-    trainOnReplayBatch(nn_online_model, nn_target_model, batchSize, optimizer);
+  for (let idx = 0; idx < trainingIterations; idx++) {
+    if (idx % 200 == 0) {
+      console.log(`training iteration ${idx} \ ${trainingIterations}`);
+      console.log('numTensors', tf.memory().numTensors);
+    }
 
-    playOneStep(nn_online_model, replayMemory);
+    trainOnReplayBatch(optimizer);
+    playOneStep();
 
     if (idx % syncEveryFrame === 0) {
-      console.log('sync');
-      copyWeights(nn_target_model, nn_online_model);
+      console.log(`syncing networks every ${syncEveryFrame} frames`);
+      copyWeights(nn_target, nn_online);
     }
   }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('train-button').addEventListener('click', async (e) => {
-    if (!trained) {
+    if (!isTrained) {
       // Create sequence and fill ReplayMemory
-      createSequence(nn_online.getModel(), replayMemory); // which network should ne matter here
-
+      createSequence();
       // Train loop
-      train(nn_online.getModel(), nn_target.getModel(), batchSize, trainingIterations);
+      train();
 
-      trained = true;
+      isTrained = true;
       document.getElementById('trainedP').innerHTML = ' training finised, hit Spacebar to start/reset pole';
     }
   });
@@ -226,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
     switch (event.keyCode) {
       // Spacebar
       case 32:
-        if (!trained) {
+        if (!isTrained) {
           console.log('not trained yet');
           break;
         }
@@ -241,14 +242,4 @@ document.addEventListener('DOMContentLoaded', () => {
         break;
     }
   });
-
-  // document.getElementById('cartpole-drawing').addEventListener('click', (e) => {
-  //   if (!trained) return;
-  //   nSteps = 0;
-  //   clearInterval(gameID);
-  //   cartpole.reset();
-  //   gameID = setInterval(() => {
-  //     gameLoop();
-  //   }, (1 / frameRate) * 1000);
-  // });
 });
