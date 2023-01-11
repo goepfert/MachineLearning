@@ -19,10 +19,11 @@ let svgContainer = d3.select('#cartpole-drawing').attr('height', height).attr('w
 let cartpole = new Cartpole(svgContainer, { dt: 0.01, forceMult: 5, g: 1 });
 
 // Create networks
-const nn_online_model = createDeepQNetwork(2).getModel();
-const nn_target = createDeepQNetwork(2);
-const nn_target_model = nn_target.getModel();
-const syncEveryFrame = 5;
+const nn_online_model = createDeepQNetwork(2);
+const nn_target_model = createDeepQNetwork(2);
+const syncEveryFrame = 1; // After how many training iterations the online will by synced to the target network
+
+nn_online_model.summary();
 
 // Create ReplayBuffer
 const replayBufferSize = 500;
@@ -37,12 +38,15 @@ let epsilon;
 const epsilon_max = 1.0;
 const epsilon_min = 0.05;
 const decay_rate = 0.025;
-const trainingIterations = 20000;
+const trainingIterations = 4000; // How many batches will be trained
 
 let isTrained = false;
 let gameID;
 let nSteps = 0;
 
+/**
+ * The Target NN tries it's best. Look how cute ...
+ */
 function tryToBalance() {
   let action = 0;
   tf.tidy(() => {
@@ -52,10 +56,13 @@ function tryToBalance() {
     action = globals.actions[actionIdx];
   });
   Utils.assert(action == -1 || action == 1, `action jackson ${action}`);
-  console.log('action:', action);
+  console.log('le action:', action);
   cartpole.step(action);
 }
 
+/**
+ * Main Loop where the network tries to balance on it's own.
+ */
 function gameLoop() {
   tryToBalance();
   const { state, reward, done } = cartpole.getCurrentState();
@@ -91,7 +98,6 @@ function playOneStep() {
     // console.log('exploit');
     tf.tidy(() => {
       const stateTensor = cartpole.getStateTensor();
-      // https://www.tensorflow.org/api_docs/python/tf/math/argmax
       actionIdx = nn_online_model.predict(stateTensor).argMax(-1).dataSync()[0];
       action = globals.actions[actionIdx];
     });
@@ -133,7 +139,8 @@ function createSequence() {
 }
 
 /**
- * Train on batch of replayMemory
+ * Train on batch taken from the replayMemory
+ * Fun with tensors ...
  */
 function trainOnReplayBatch(optimizer) {
   const batch = replayBuffer.sample(batchSize);
@@ -142,7 +149,7 @@ function trainOnReplayBatch(optimizer) {
   const lossFunction = () =>
     tf.tidy(() => {
       // item[0] state
-      // item[1] action
+      // item[1] actionIdx (index, not the q(action) value itself)
       // item[2] reward of next state
       // item[3] next state
       // item[4] done
@@ -189,7 +196,8 @@ function trainOnReplayBatch(optimizer) {
 }
 
 /**
- * Training
+ * Training function
+ * Adds one new data point to the replayMemory (which is a ringbuffer)
  */
 function train() {
   const optimizer = tf.train.adam(learningRate);
