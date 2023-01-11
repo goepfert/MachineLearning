@@ -19,8 +19,9 @@ let svgContainer = d3.select('#cartpole-drawing').attr('height', height).attr('w
 let cartpole = new Cartpole(svgContainer, { dt: 0.01, forceMult: 5, g: 1 });
 
 // Create networks
-const nn_online = createDeepQNetwork(2);
+const nn_online_model = createDeepQNetwork(2).getModel();
 const nn_target = createDeepQNetwork(2);
+const nn_target_model = nn_target.getModel();
 const syncEveryFrame = 5;
 
 // Create ReplayBuffer
@@ -30,13 +31,13 @@ const replayBuffer = new ReplayBuffer(replayBufferSize);
 // Training
 let resetNextIter = true; // Reset next iteration
 const batchSize = replayBufferSize / 2; // Sample size for parallel training
-const learningRate = 0.01; //0.001;
+const learningRate = 0.1;
 const discountRate = 0.99;
 let epsilon;
 const epsilon_max = 1.0;
 const epsilon_min = 0.05;
 const decay_rate = 0.025;
-const trainingIterations = 1000;
+const trainingIterations = 20000;
 
 let isTrained = false;
 let gameID;
@@ -47,7 +48,8 @@ function tryToBalance() {
   tf.tidy(() => {
     const stateTensor = cartpole.getStateTensor();
     // https://www.tensorflow.org/api_docs/python/tf/math/argmax
-    action = globals.actions[nn_target.predict(stateTensor).argMax(-1).dataSync()[0]];
+    const actionIdx = nn_target_model.predict(stateTensor).argMax(-1).dataSync()[0];
+    action = globals.actions[actionIdx];
   });
   Utils.assert(action == -1 || action == 1, `action jackson ${action}`);
   console.log('action:', action);
@@ -81,6 +83,7 @@ function playOneStep() {
 
   const { state: currentState } = cartpole.getCurrentState();
   let action = 0;
+  let actionIdx = -1;
 
   // Exploit or explore
   let rnd = Math.random();
@@ -89,18 +92,18 @@ function playOneStep() {
     tf.tidy(() => {
       const stateTensor = cartpole.getStateTensor();
       // https://www.tensorflow.org/api_docs/python/tf/math/argmax
-      action = globals.actions[nn_online.predict(stateTensor).argMax(-1).dataSync()[0]];
+      actionIdx = nn_online_model.predict(stateTensor).argMax(-1).dataSync()[0];
+      action = globals.actions[actionIdx];
     });
   } else {
     // console.log('explore');
-    const rndIdx = Utils.getRandomInt(0, 1);
-    action = globals.actions[rndIdx];
+    actionIdx = Utils.getRandomInt(0, 1);
+    action = globals.actions[actionIdx];
   }
-
   Utils.assert(action == -1 || action == 1, `action jackson ${action}`);
   const { state: nextState, reward, done } = cartpole.step(action);
 
-  replayBuffer.append([currentState, action, reward, nextState, done]);
+  replayBuffer.append([currentState, actionIdx, reward, nextState, done]);
 
   // Reduce/Decay epsilon
   epsilon = epsilon * (1 - decay_rate);
@@ -151,10 +154,9 @@ function trainOnReplayBatch(optimizer) {
         batch.map((item) => item[1]),
         'int32'
       );
-
       // Compute Q value of the current state
       // Note that we use apply() instead of predict because apply() allow access to the gradient
-      const online = nn_online.apply(stateTensor, { training: true });
+      const online = nn_online_model.apply(stateTensor, { training: true });
       const oneHot = tf.oneHot(actionTensor, globals.actions.length);
       const qs = online.mul(oneHot).sum(-1);
 
@@ -165,7 +167,7 @@ function trainOnReplayBatch(optimizer) {
         batch.map((item) => Object.values(item[3])),
         [batchSize, 4]
       );
-      const nextMaxQTensor = nn_target.predict(nextStateTensor).max(-1);
+      const nextMaxQTensor = nn_target_model.predict(nextStateTensor).max(-1);
       const status = tf.tensor1d(batch.map((item) => item[4])).asType('float32');
       // If terminal state then status = 1 => doneMask = 0
       // If not terminal then status = 0 => doneMask = 1
@@ -197,7 +199,7 @@ function train() {
   for (let idx = 0; idx < trainingIterations; idx++) {
     if (idx % 200 == 0) {
       console.log(`training iteration ${idx} \ ${trainingIterations}`);
-      console.log('numTensors', tf.memory().numTensors);
+      // console.log('numTensors', tf.memory().numTensors);
     }
 
     trainOnReplayBatch(optimizer);
@@ -205,7 +207,7 @@ function train() {
 
     if (idx % syncEveryFrame === 0) {
       console.log(`syncing networks every ${syncEveryFrame} frames`);
-      copyWeights(nn_target, nn_online);
+      copyWeights(nn_target_model, nn_online_model);
     }
   }
 }
