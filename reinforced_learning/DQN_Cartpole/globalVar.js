@@ -5,4 +5,5 @@ export default {
   fifteen_degrees: Math.PI / 12,
   fifty_degrees: Math.PI / 3.0,
   actions: [-1, 1],
+  tau: 0.2, // hard update tau=1 // !! very sensitive
 };

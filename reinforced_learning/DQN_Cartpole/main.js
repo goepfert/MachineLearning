@@ -26,19 +26,19 @@ const syncEveryFrame = 1; // After how many training iterations the online will 
 nn_online_model.summary();
 
 // Create ReplayBuffer
-const replayBufferSize = 500;
+const replayBufferSize = 100000;
 const replayBuffer = new ReplayBuffer(replayBufferSize);
 
 // Training
 let resetNextIter = true; // Reset next iteration
-const batchSize = replayBufferSize / 2; // Sample size for parallel training
-const learningRate = 0.1;
+const batchSize = 32; //replayBufferSize / 2; // Sample size for parallel training
+const learningRate = 0.001;
 const discountRate = 0.99;
 let epsilon;
 const epsilon_max = 1.0;
-const epsilon_min = 0.05;
-const decay_rate = 0.025;
-const trainingIterations = 4000; // How many batches will be trained
+const epsilon_min = 0.01;
+const decay_rate = 0.001;
+const trainingIterations = 10000; // How many batches will be trained
 
 let isTrained = false;
 let gameID;
@@ -214,7 +214,7 @@ function train() {
     playOneStep();
 
     if (idx % syncEveryFrame === 0) {
-      console.log(`syncing networks every ${syncEveryFrame} frames`);
+      // console.log(`syncing networks every ${syncEveryFrame} frames`);
       copyWeights(nn_target_model, nn_online_model);
     }
   }
