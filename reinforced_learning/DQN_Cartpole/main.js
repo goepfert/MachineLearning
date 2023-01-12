@@ -33,7 +33,7 @@ const replayBuffer = new ReplayBuffer(replayBufferSize);
 let resetNextIter = true; // Reset next iteration
 const batchSize = 32; //replayBufferSize / 2; // Sample size for parallel training
 const learningRate = 0.001;
-const discountRate = 0.99;
+const discountRate = 0.98;
 let epsilon;
 const epsilon_max = 1.0;
 const epsilon_min = 0.01;
@@ -80,7 +80,7 @@ function gameLoop() {
 /**
  * Play one step and append it to the replayBuffer
  */
-function playOneStep() {
+function playOneStep(explore_only = false) {
   if (resetNextIter) {
     // console.log('resetting cartpole');
     epsilon = epsilon_max;
@@ -94,11 +94,16 @@ function playOneStep() {
 
   // Exploit or explore
   let rnd = Math.random();
+
+  // Quick hack to ensure exploration
+  if (explore_only) rnd = 0;
+
   if (rnd > epsilon) {
     // console.log('exploit');
     tf.tidy(() => {
       const stateTensor = cartpole.getStateTensor();
       actionIdx = nn_online_model.predict(stateTensor).argMax(-1).dataSync()[0];
+      // actionIdx = nn_target_model.predict(stateTensor).argMax(-1).dataSync()[0];
       action = globals.actions[actionIdx];
     });
   } else {
@@ -130,7 +135,7 @@ function createSequence() {
   let counter = replayBufferSize;
 
   while (counter > 0) {
-    playOneStep();
+    playOneStep(true);
     counter--;
   }
 
@@ -211,7 +216,9 @@ function train() {
     }
 
     trainOnReplayBatch(optimizer);
-    playOneStep();
+    for (let batchIdx = 0; batchIdx < batchSize; batchIdx++) {
+      playOneStep();
+    }
 
     if (idx % syncEveryFrame === 0) {
       // console.log(`syncing networks every ${syncEveryFrame} frames`);

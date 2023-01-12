@@ -10,7 +10,7 @@ class ReplayBuffer {
       this.buffer.push(null);
       this.bufferIndices.push(i);
     }
-    this.index = 0;
+    this.head = 0;
     this.length = 0;
   }
 
@@ -18,19 +18,20 @@ class ReplayBuffer {
    * Append an item to the replay buffer.
    */
   append(item) {
-    this.buffer[this.index] = item;
+    this.buffer[this.head] = item;
     this.length = Math.min(this.length + 1, this.maxLen);
-    this.index = (this.index + 1) % this.maxLen;
+    this.head = (this.head + 1) % this.maxLen;
   }
 
   /**
    * Randomly sample a batch of items from the replay buffer.
    * The sampling is done *without* replacement.
+   * Nor does it check if the buffer is filled appropriately!
    */
   sample(batchSize) {
-    if (batchSize > this.maxLen) {
-      throw new Error(`batchSize (${batchSize}) exceeds buffer length (${this.maxLen})`);
-    }
+    Utils.assert(batchSize <= this.maxLen, `batchSize (${batchSize}) exceeds buffer length (${this.maxLen})`);
+    Utils.assert(this.length == this.maxLen, "ReplayBuffer hasn't been filled completely yet");
+
     this.#shuffle(this.bufferIndices);
 
     const out = [];

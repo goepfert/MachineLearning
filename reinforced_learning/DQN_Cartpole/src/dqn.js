@@ -5,9 +5,9 @@ import globals from '../globalVar.js';
  */
 function createDeepQNetwork(numActions) {
   const model = tf.sequential();
-  model.add(tf.layers.dense({ units: 24, activation: 'relu', kernelInitializer: 'HeUniform', inputShape: [4] }));
-  model.add(tf.layers.dense({ units: 24, activation: 'relu', kernelInitializer: 'HeUniform' }));
-  // model.add(tf.layers.dropout({ rate: 0.1 })); // do not
+  model.add(tf.layers.dense({ units: 32, activation: 'relu', kernelInitializer: 'RandomNormal', inputShape: [4] }));
+  model.add(tf.layers.dense({ units: 64, activation: 'relu', kernelInitializer: 'RandomNormal' }));
+  // model.add(tf.layers.dropout({ rate: 0.1 })); // do not .. nananahhh
   model.add(tf.layers.dense({ units: numActions }));
 
   return model;
