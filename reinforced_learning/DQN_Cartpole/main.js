@@ -21,6 +21,9 @@ let cartpole = new Cartpole(svgContainer, { dt: 0.01, forceMult: 5, g: 1 });
 // Create networks
 const nn_online_model = createDeepQNetwork(2);
 const nn_target_model = createDeepQNetwork(2);
+copyWeights(nn_target_model, nn_online_model, 1);
+nn_target_model.trainable = false;
+
 const syncEveryFrame = 1; // After how many training iterations the online will by synced to the target network
 
 nn_online_model.summary();
@@ -38,7 +41,7 @@ let epsilon;
 const epsilon_max = 1.0;
 const epsilon_min = 0.01;
 const decay_rate = 0.001;
-const trainingIterations = 10000; // How many batches will be trained
+const trainingIterations = 20000; // How many batches will be trained 5000 works, but 10000 not ... what?
 
 let isTrained = false;
 let gameID;
@@ -49,9 +52,11 @@ let nSteps = 0;
  */
 function tryToBalance() {
   let action = 0;
+  //let res = [];
   tf.tidy(() => {
     const stateTensor = cartpole.getStateTensor();
     // https://www.tensorflow.org/api_docs/python/tf/math/argmax
+    //res = nn_target_model.predict(stateTensor).dataSync().slice();
     const actionIdx = nn_target_model.predict(stateTensor).argMax(-1).dataSync()[0];
     action = globals.actions[actionIdx];
   });
@@ -150,6 +155,9 @@ function createSequence() {
 function trainOnReplayBatch(optimizer) {
   const batch = replayBuffer.sample(batchSize);
 
+  // console.log(nn_online_model.getWeights()[0].dataSync());
+  // console.log(nn_target_model.getWeights()[0].dataSync());
+
   // Define the loss function
   const lossFunction = () =>
     tf.tidy(() => {
@@ -197,6 +205,12 @@ function trainOnReplayBatch(optimizer) {
   // Use the gradients to update the online DQN's
   optimizer.applyGradients(grads.grads);
 
+  // console.log(nn_online_model.getWeights()[0].dataSync());
+  // console.log(nn_target_model.getWeights()[0].dataSync());
+  // copyWeights(nn_target_model, nn_online_model, 0.5);
+  // console.log(nn_online_model.getWeights()[0].dataSync());
+  // console.log(nn_target_model.getWeights()[0].dataSync());
+
   tf.dispose(grads);
 }
 
@@ -216,9 +230,9 @@ function train() {
     }
 
     trainOnReplayBatch(optimizer);
-    for (let batchIdx = 0; batchIdx < batchSize; batchIdx++) {
-      playOneStep();
-    }
+    // for (let batchIdx = 0; batchIdx < batchSize; batchIdx++) {
+    playOneStep();
+    // }
 
     if (idx % syncEveryFrame === 0) {
       // console.log(`syncing networks every ${syncEveryFrame} frames`);

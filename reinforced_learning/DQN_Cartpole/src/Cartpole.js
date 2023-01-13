@@ -108,6 +108,8 @@ class Cartpole {
     // reward is zero if x==2.4 and theta 12 degrees (pi/15)
     this.reward += 1 - (this.x * this.x) / 5.76 - (this.theta * this.theta) / 0.04; // - (this.thetadot * this.thetadot) / 0.04;
 
+    // if (this.reward < 0) this.reward = 0;
+
     // works also
     // if (
     //   this.x > -2.4 &&
@@ -119,6 +121,7 @@ class Cartpole {
     // }
 
     if (this.x < -4.0 || this.x > 4.0 || this.theta < -globals.fifty_degrees || this.theta > globals.fifty_degrees) {
+      // this.reward = this.reward - 100;
       this.done = true;
     }
   }

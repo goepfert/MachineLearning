@@ -5,8 +5,9 @@ import globals from '../globalVar.js';
  */
 function createDeepQNetwork(numActions) {
   const model = tf.sequential();
-  model.add(tf.layers.dense({ units: 32, activation: 'relu', kernelInitializer: 'RandomNormal', inputShape: [4] }));
-  model.add(tf.layers.dense({ units: 64, activation: 'relu', kernelInitializer: 'RandomNormal' }));
+  //model.add(tf.layers.dense({ units: 16, activation: 'relu', kernelInitializer: 'RandomNormal', inputShape: [4] }));
+  model.add(tf.layers.dense({ units: 16, activation: 'relu', kernelInitializer: 'RandomNormal', inputShape: [4] }));
+  model.add(tf.layers.dense({ units: 32, activation: 'relu', kernelInitializer: 'RandomNormal' }));
   // model.add(tf.layers.dropout({ rate: 0.1 })); // do not .. nananahhh
   model.add(tf.layers.dense({ units: numActions }));
 
@@ -20,7 +21,12 @@ function createDeepQNetwork(numActions) {
  * What about soft update? https://arxiv.org/pdf/1509.02971.pdf
  * Not sure if I know what I'm doing here :|
  */
-function copyWeights(destNetwork, srcNetwork) {
+function copyWeights(destNetwork, srcNetwork, tau) {
+  if (tau == undefined) {
+    tau = globals.tau;
+  }
+  // console.log('🚀 ~ file: dqn.js:26 ~ copyWeights ~ tau', tau);
+
   tf.tidy(() => {
     let originalDestNetworkTrainable;
     if (destNetwork.trainable !== srcNetwork.trainable) {
@@ -37,7 +43,7 @@ function copyWeights(destNetwork, srcNetwork) {
       let srcData = srcWeights[i].dataSync().slice();
       let destData = destWeights[i].dataSync().slice();
       for (let j = 0; j < srcData.length; j++) {
-        destData[j] = destData[j] * (1 - globals.tau) + srcData[j] * globals.tau;
+        destData[j] = destData[j] * (1 - tau) + srcData[j] * tau;
       }
       let newDestWeight = tf.tensor(destData, shape);
       destWeights[i] = newDestWeight;
