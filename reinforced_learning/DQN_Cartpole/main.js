@@ -18,13 +18,15 @@ const frameRate = 30;
 let svgContainer = d3.select('#cartpole-drawing').attr('height', height).attr('width', width);
 let cartpole = new Cartpole(svgContainer, { dt: 0.01, forceMult: 5, g: 1 });
 
-// Create networks
+// Create two identical networks
 const nn_online_model = createDeepQNetwork(2);
 const nn_target_model = createDeepQNetwork(2);
 copyWeights(nn_target_model, nn_online_model, 1);
 nn_target_model.trainable = false;
 
-const syncEveryFrame = 1; // After how many training iterations the online will by synced to the target network
+// After how many training iterations the online will by synced to the target network
+// If you use smooth transitions (tau<1) it can be set to 1
+const syncEveryFrame = 1;
 
 nn_online_model.summary();
 
@@ -41,7 +43,7 @@ let epsilon;
 const epsilon_max = 1.0;
 const epsilon_min = 0.01;
 const decay_rate = 0.001;
-const trainingIterations = 20000; // How many batches will be trained 5000 works, but 10000 not ... what?
+const trainingIterations = 50000; // How many batches will be trained 5000 works, but 10000 not ... what?
 
 let isTrained = false;
 let gameID;
@@ -149,7 +151,7 @@ function createSequence() {
 }
 
 /**
- * Train on batch taken from the replayMemory
+ * Train on batch taken from the replayBuffer
  * Fun with tensors ...
  */
 function trainOnReplayBatch(optimizer) {
@@ -224,21 +226,24 @@ function train() {
 
   // Training Iterations
   for (let idx = 0; idx < trainingIterations; idx++) {
-    if (idx % 200 == 0) {
+    if (idx % 500 == 0) {
       console.log(`training iteration ${idx} \ ${trainingIterations}`);
       // console.log('numTensors', tf.memory().numTensors);
     }
 
     trainOnReplayBatch(optimizer);
-    // for (let batchIdx = 0; batchIdx < batchSize; batchIdx++) {
+
+    // It's enough to add only one new step per training iteration
     playOneStep();
-    // }
 
     if (idx % syncEveryFrame === 0) {
       // console.log(`syncing networks every ${syncEveryFrame} frames`);
       copyWeights(nn_target_model, nn_online_model);
     }
   }
+
+  copyWeights(nn_target_model, nn_online_model);
+  console.log('training finished');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -250,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
       train();
 
       isTrained = true;
-      document.getElementById('trainedP').innerHTML = ' training finised, hit Spacebar to start/reset pole';
+      document.getElementById('trainedP').innerHTML = ' training finished, hit Spacebar to start/reset pole';
     }
   });
 
