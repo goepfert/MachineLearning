@@ -2,7 +2,7 @@ import Perceptron from './Perceptron.js';
 import Utils from '../Utils.js';
 
 // Most important things to play with
-const learningRate = 0.001;
+const learningRate = 0.002;
 const drawTimeout_ms = 20;
 
 const canvas = document.getElementById('canvas');
@@ -69,14 +69,15 @@ function setup() {
  * Called repeatedly
  */
 function draw() {
+  // Clear canvas
   context.fillStyle = 'WhiteSmoke';
   context.fillRect(0, 0, width, height);
 
   // Draw coordinate system
-  // Utils.drawLine(context, transformX(0), transformY(0), transformX(1), transformY(0), 1, 'black');
-  // Utils.drawLine(context, transformX(0), transformY(0), transformX(0), transformY(1), 1, 'black');
-  // Utils.drawLine(context, transformX(0), transformY(0), transformX(-1), transformY(0), 1, 'black');
-  // Utils.drawLine(context, transformX(0), transformY(0), transformX(0), transformY(-1), 1, 'black');
+  Utils.drawLine(context, transformX(0), transformY(0), transformX(1), transformY(0), 1, 'black');
+  Utils.drawLine(context, transformX(0), transformY(0), transformX(0), transformY(1), 1, 'black');
+  Utils.drawLine(context, transformX(0), transformY(0), transformX(-1), transformY(0), 1, 'black');
+  Utils.drawLine(context, transformX(0), transformY(0), transformX(0), transformY(-1), 1, 'black');
 
   // Draw function
   Utils.drawLine(context, transformX(xmin), transformY(f(xmin)), transformX(xmax), transformY(f(xmax)), 2, 'black');
@@ -116,4 +117,5 @@ function draw() {
 
 // Kick off
 setup();
+// draw();
 ID = setInterval(draw, drawTimeout_ms);
