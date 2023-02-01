@@ -4,6 +4,9 @@
 
 'use strict';
 
+/**
+ * Revealing Module Pattern with IIFE: https://www.geeksforgeeks.org/describe-the-revealing-module-pattern-in-javascript/
+ */
 const Utils = (() => {
   /**
    * map given number (value) from one range to another one
