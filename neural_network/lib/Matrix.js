@@ -142,6 +142,7 @@ class Matrix {
 }
 
 // comment out for running jest
+// https://blog.openreplay.com/the-complete-guide-to-modules/
 export default Matrix;
 
 if (typeof module !== 'undefined') {

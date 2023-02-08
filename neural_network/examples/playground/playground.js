@@ -3,21 +3,20 @@ import NeuralNetwork from '../../lib/NeuralNetwork.js';
 import { createTrainingData } from './TrainingData.js';
 import { Dataset } from './Dataset.js';
 
-const learningRate = 0.05;
+// random
+// const learningRate = 0.05;
+// const max_iterations = 3000;
+
+//spiral
+const learningRate = 0.1;
 const max_iterations = 3000;
+
 const iterations_per_draw_cycle = 1000;
 
 const canvas = document.getElementById('canvas');
 const width = (canvas.width = 400);
 const height = (canvas.height = 400);
 const context = canvas.getContext('2d');
-
-const train_btn = document.getElementById('train_btn');
-train_btn.addEventListener('click', () => {
-  if (training_data != undefined) {
-    ID = setInterval(draw, drawTimeout_ms);
-  }
-});
 
 const hue_blue = 240;
 const hue_yellow = 60;
@@ -172,3 +171,11 @@ let dropdown = document.querySelector('.dropdown');
 dropdown.onclick = function () {
   dropdown.classList.toggle('active');
 };
+
+// Train button
+const train_btn = document.getElementById('train_btn');
+train_btn.addEventListener('click', () => {
+  if (training_data != undefined) {
+    ID = setInterval(draw, drawTimeout_ms);
+  }
+});
