@@ -1,8 +1,11 @@
 /**
  * Uses the Core minimizer to optimize the variables of a straight line to match the input data
+ * There is no neural net involved!!!
  *
  * More extensive example using a real NN -> https://codelabs.developers.google.com/codelabs/tfjs-training-regression/index.html#0
- *   - one input, one dense layer with one node, one output -> looks like a perceptron
+ * or https://codepen.io/pen?&editors=0012&layout=top
+ *   - one input, one dense layer with one node, one output -> looks like a perceptron (linear equation)
+ *   - if no activation is given in the layer, then there is no activation (or linear if you want)
  */
 
 import Utils from '../../../Utils.js';
@@ -19,11 +22,12 @@ let coord = { x: 0, y: 0 };
 let xInputs = [];
 let yInputs = [];
 
+// Slope and Offset
 let m;
 let n;
 
-const learningRate = 0.5;
-const max_iterations = 1000;
+const learningRate = 0.01;
+const max_iterations = 10000;
 let count = 0;
 const optimizer = tf.train.sgd(learningRate);
 
@@ -45,8 +49,8 @@ function mousePressed(event) {
   let x = Utils.map(coord.x, 0, width, 0, 1);
   let y = Utils.map(coord.y, 0, height, 1, 0);
 
-  console.log(coord);
-  console.log(x, y);
+  // console.log(coord);
+  console.log('mouse pressed on coordinates: ', x, y);
 
   if (x < 0 || x > 1 || y < 0 || y > 1) {
     return;
@@ -98,7 +102,7 @@ function setup() {
  * Called repeatedly
  */
 function draw() {
-  // Use minimizer to fit lien to data
+  // Use minimizer to fit line to data
   tf.tidy(() => {
     if (xInputs.length > 0) {
       const ys = tf.tensor1d(yInputs);
