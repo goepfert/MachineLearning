@@ -48,6 +48,19 @@ const c = tf.tensor3d(data, [2, 5, 3]);
 // console.log('shape:', c.shape);
 // c.print();
 
+// ----- reshaping --------------------------------
+
+const d = tf.tensor([
+  [1, 2],
+  [3, 4],
+]);
+// console.log('d shape:', d.shape);
+// d.print();
+
+const e = d.reshape([4, 1]);
+// console.log('e shape:', e.shape);
+// e.print();
+
 //--- data --------------------------------
 
 // console.log(c.data());

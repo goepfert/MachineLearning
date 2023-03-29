@@ -2,8 +2,8 @@
  * Uses the Core minimizer to optimize the variables of a straight line to match the input data
  * There is no neural net involved!!!
  *
+ * Check also the superclean.js example (better check befor this one)
  * More extensive example using a real NN -> https://codelabs.developers.google.com/codelabs/tfjs-training-regression/index.html#0
- * or https://codepen.io/pen?&editors=0012&layout=top
  *   - one input, one dense layer with one node, one output -> looks like a perceptron (linear equation)
  *   - if no activation is given in the layer, then there is no activation (or linear if you want)
  */
