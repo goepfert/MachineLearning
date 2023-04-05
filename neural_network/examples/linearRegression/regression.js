@@ -2,10 +2,8 @@
  * Uses the Core minimizer to optimize the variables of a straight line to match the input data
  * There is no neural net involved!!!
  *
- * Check also the superclean.js example (better check befor this one)
- * More extensive example using a real NN -> https://codelabs.developers.google.com/codelabs/tfjs-training-regression/index.html#0
- *   - one input, one dense layer with one node, one output -> looks like a perceptron (linear equation)
- *   - if no activation is given in the layer, then there is no activation (or linear if you want)
+ * Check also the superclean.js example (better check before this one)
+ * More extensive example using a real NN -> regression?nn.js
  */
 
 import Utils from '../../../Utils.js';
@@ -23,6 +21,7 @@ let xInputs = [];
 let yInputs = [];
 
 // Slope and Offset
+// Later declared as variable for tensorflow
 let m;
 let n;
 
@@ -73,7 +72,7 @@ function loss(prediction, measurement) {
  * And this theory is here in this example a linear dependency based on two parameters
  */
 function predict(x) {
-  const xs = tf.tensor1d(x);
+  const xs = tf.tensor(x);
   // y = mx + n;
   const ys = xs.mul(m).add(n);
   return ys;
@@ -122,14 +121,13 @@ function draw() {
 
   // Draw estimate
   const lineX = [0, 1];
-  // const ys = tf.tidy(() => predict(lineX));
-  // let lineY = ys.dataSync();
-  // ys.dispose();
-
   const lineY = [0, 0];
 
-  lineY[0] = tf.tidy(() => predictSingle(lineX[0]).dataSync());
-  lineY[1] = tf.tidy(() => predictSingle(lineX[1]).dataSync());
+  // Convert to array or use predictSingle that users tf.scalars
+  let line_x1 = [lineX[0]];
+  let line_x2 = [lineX[1]];
+  lineY[0] = tf.tidy(() => predict(line_x1).dataSync());
+  lineY[1] = tf.tidy(() => predict(line_x2).dataSync());
 
   let x1 = Utils.map(lineX[0], 0, 1, 0, width);
   let x2 = Utils.map(lineX[1], 0, 1, 0, width);
@@ -140,7 +138,7 @@ function draw() {
 
   // Simply stop
   if (count++ >= max_iterations) {
-    clearInterval(ID);
+    // clearInterval(ID);
   }
 }
 
