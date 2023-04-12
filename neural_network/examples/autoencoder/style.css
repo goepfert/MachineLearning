@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato&display=swap');
+
+:root {
+  --highlight-color: #9bc400;
+  --text-color: rgb(49, 49, 49);
+  --button-color: rgb(224, 223, 218);
+  --hover-color: rgb(190, 189, 189);
+  --background-color: #bfccc0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--background-color);
+  min-height: 100vh;
+  margin: 0;
+  font-family: 'Lato', sans-serif;
+}
+
+#canvas {
+  box-shadow: 5px 5px 10px var(--text-color);
+  margin: 0 10px;
+}
+
+.container {
+  margin: 30px auto;
+  width: 800px;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 10px 4px;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 4px;
+}
+
+button,
+.button {
+  cursor: pointer;
+  background-color: var(--button-color);
+  color: rgb(49, 49, 49);
+  border-radius: 4px;
+  border: 1px solid var(--text-color);
+  display: block;
+  padding: 2px 10px;
+  margin: 2px 5px;
+  font-size: 16px;
+  font-family: 'Lora', serif;
+}
+
+label {
+  margin-right: 10px;
+}
+
+button:hover,
+.button:hover {
+  background-color: var(--hover-color);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  /* font-weight: 800; */
+}
+
+.hide {
+  display: none;
+}
+
+.title {
+  padding: 0 5px;
+}
