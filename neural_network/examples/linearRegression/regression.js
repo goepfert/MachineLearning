@@ -25,7 +25,7 @@ let yInputs = [];
 let m;
 let n;
 
-const learningRate = 0.01;
+const learningRate = 0.05;
 const max_iterations = 10000;
 let count = 0;
 const optimizer = tf.train.sgd(learningRate);

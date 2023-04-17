@@ -49,9 +49,9 @@ function clearAllCanvas() {
 function setup() {
   // Maybe another dropdown
   image = new Image();
-  // image.src = 'images/griswolds.jpg';
-  image.src = 'images/pattern_1.png';
-  // image.src = 'images/pattern_2.png';
+  //image.src = 'images/griswolds.jpg';
+  //image.src = 'images/pattern_1.png';
+  image.src = 'images/pattern_2.png';
   // image.src = 'images/testimage.png';
 
   clearAllCanvas();

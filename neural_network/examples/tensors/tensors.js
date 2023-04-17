@@ -42,9 +42,9 @@ const data = Array.from(Array(30), () => {
 });
 // console.log(data);
 
-//const c = tf.tensor(data, [2, 5, 3]);
+//const c = tf.tensor(data, [2, 2, 2, 2]);
 //more readable
-const c = tf.tensor3d(data, [2, 5, 3]);
+const c = tf.tensor3d(data, [3, 5, 2]);
 // console.log('shape:', c.shape);
 // c.print();
 
@@ -65,11 +65,11 @@ const e = d.reshape([4, 1]);
 
 // console.log(c.data());
 // console.log(c.dataSync());
-// c.data().then((data) => console.log(data));
+c.data().then((data) => console.log(data));
 
 async function print() {
   let d = await c.data();
-  console.log(d);
+  // console.log(d);
 }
 // print();
 

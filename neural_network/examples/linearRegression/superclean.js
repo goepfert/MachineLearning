@@ -7,8 +7,8 @@ x_vals.forEach((x_val) => {
   y_vals.push(rnd + x_val);
 });
 
-// console.log(x_vals);
-// console.log(y_vals);
+console.log(x_vals);
+console.log(y_vals);
 
 // Model parameters
 let m = tf.variable(tf.scalar(Math.random()));

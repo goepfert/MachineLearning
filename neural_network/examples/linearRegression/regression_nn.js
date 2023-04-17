@@ -4,7 +4,7 @@
  *
  * One input, one dense layer with one node, one output -> looks like a perceptron (linear equation -> write it down!)
  * If no activation is given in the layer, then there is no activation (or linear if you want)
- * With activation function you will get some kind of non-linearity but I'm not sure if this has something to do with the non-linearity that needed to be added when bulding a multilayer perceptron
+ * With activation function you will get some kind of non-linearity but I'm not sure if this has something to do with the non-linearity that needed to be added when building a multilayer perceptron
  *
  */
 
@@ -22,8 +22,8 @@ let coord = { x: 0, y: 0 };
 let xInputs = [];
 let yInputs = [];
 
-// const learningRate = 0.05; // adam, relu, 32 units
-const learningRate = 0.5; // no activation
+const learningRate = 0.002; // adam, relu, 32 units
+// const learningRate = 0.5; // no activation
 // const learningRate = 10; // sigmoid
 let model;
 
@@ -69,21 +69,21 @@ function setup() {
   model.add(
     tf.layers.dense({
       inputShape: [1],
-      units: 1,
+      units: 32,
       useBias: true,
       kernelInitializer: 'randomNormal',
       activation: 'relu',
     })
   );
 
-  // model.add(
-  //   tf.layers.dense({
-  //     units: 1,
-  //     useBias: true,
-  //     kernelInitializer: 'randomNormal',
-  //     activation: 'relu',
-  //   })
-  // );
+  model.add(
+    tf.layers.dense({
+      units: 1,
+      useBias: false,
+      kernelInitializer: 'randomNormal',
+      activation: 'relu',
+    })
+  );
 
   const optimizer = tf.train.adam(learningRate);
   model.compile({
