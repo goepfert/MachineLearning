@@ -10,6 +10,7 @@ const grid = 10;
 const nCols = width / grid;
 const nRows = height / grid;
 
+// single file
 function handleFileSelect_load(evt) {
   console.log('hello');
 
@@ -23,33 +24,74 @@ function handleFileSelect_load(evt) {
     imageDataset.clearData();
     imageDataset.setData(data);
 
-    setInterval(drawLoop(imageDataset), 500);
+    setInterval(() => {
+      drawLoop(imageDataset);
+    }, 500);
   });
 
   reader.readAsText(file);
 }
 
-let img_number = 9;
-const image_length = 784; //28*28;
-const header_length = 80;
+/**
+ * Multiselect image files that are created with createDataset
+ * Sets imageDataset global variable
+ */
+async function handleFileSelect_load_dataset(evt) {
+  const nFiles = evt.target.files.length;
+  let promises = [];
+
+  let combinedData = [];
+  const imageDataset = createImageDataset(28, 28);
+  imageDataset.clearData();
+
+  for (let fileIdx = 0; fileIdx < nFiles; fileIdx++) {
+    const file = evt.target.files[fileIdx];
+    console.log('loading data from', file.name);
+
+    let filePromise = new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.addEventListener('load', (event) => {
+        const res = event.target.result;
+        const textByLine = res.split('\n');
+        const data = JSON.parse(textByLine);
+
+        // convertData(data);
+        imageDataset.setData(data);
+
+        resolve(imageDataset.getData());
+      });
+      reader.readAsText(file);
+    });
+
+    promises.push(filePromise);
+  }
+
+  // wait until all promises came back
+  const allData = await Promise.all(promises);
+  combinedData = [];
+
+  allData.map((data) => {
+    combinedData = combinedData.concat(structuredClone(data));
+  });
+  imageDataset.setData(combinedData);
+  imageDataset.printInfo();
+  console.log('all files loaded successfully, ready for training');
+
+  setInterval(() => {
+    drawLoop(imageDataset);
+  }, 500);
+}
 
 function drawLoop(imageDataset) {
-  console.log(img_number);
-  // const image = uint8View.slice(
-  //   header_length + img_number * image_length,
-  //   header_length + image_length + img_number * image_length
-  // );
-
   let data = imageDataset.getData();
-
+  const img_number = Math.floor(Utils.getRandomArbitrary(0, data.length - 1));
   const image = data[img_number].data;
-
+  console.log(img_number, data[img_number].label);
   draw(image);
-  img_number++;
 }
 
 function draw(image) {
-  //   console.log(image.length);
+  // console.log(image.length);
   for (let row_idx = 0; row_idx < nRows; row_idx++) {
     for (let col_idx = 0; col_idx < nCols; col_idx++) {
       let color = image[col_idx + row_idx * nCols];
@@ -61,4 +103,4 @@ function draw(image) {
   }
 }
 
-document.getElementById('file-load').addEventListener('change', handleFileSelect_load, false);
+document.getElementById('file-load').addEventListener('change', handleFileSelect_load_dataset, false);

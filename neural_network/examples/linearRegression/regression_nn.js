@@ -22,9 +22,15 @@ let coord = { x: 0, y: 0 };
 let xInputs = [];
 let yInputs = [];
 
-const learningRate = 0.002; // adam, relu, 32 units
-// const learningRate = 0.5; // no activation
-// const learningRate = 10; // sigmoid
+//ex 1
+// const learningRate = 0.5;
+
+//ex2
+// const learningRate = 10;
+
+//ex3
+const learningRate = 0.001;
+
 let model;
 
 function clearCanvas() {
@@ -66,25 +72,46 @@ function setup() {
   // Network
   model = tf.sequential();
 
+  // // ex1
+  // model.add(
+  //   tf.layers.dense({
+  //     inputShape: [1],
+  //     units: 1,
+  //     useBias: true,
+  //     kernelInitializer: 'randomNormal',
+  //   })
+  // );
+
+  // // ex2
+  // model.add(
+  //   tf.layers.dense({
+  //     inputShape: [1],
+  //     units: 1,
+  //     useBias: true,
+  //     kernelInitializer: 'randomNormal',
+  //     activation: 'sigmoid',
+  //   })
+  // );
+
+  // ex3
   model.add(
     tf.layers.dense({
       inputShape: [1],
       units: 32,
-      useBias: true,
-      kernelInitializer: 'randomNormal',
-      activation: 'relu',
+      kernelInitializer: 'varianceScaling',
+      activation: 'sigmoid',
     })
   );
 
   model.add(
     tf.layers.dense({
       units: 1,
-      useBias: false,
       kernelInitializer: 'randomNormal',
-      activation: 'relu',
+      activation: 'sigmoid',
     })
   );
 
+  // const optimizer = tf.train.sgd(learningRate);
   const optimizer = tf.train.adam(learningRate);
   model.compile({
     optimizer: optimizer,
