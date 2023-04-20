@@ -371,4 +371,7 @@ const App = (() => {
   };
 })();
 
-App.init();
+// Kick off
+window.onload = () => {
+  App.init();
+};

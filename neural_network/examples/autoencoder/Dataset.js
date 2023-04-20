@@ -98,7 +98,7 @@ function createImageDataset(img_width, img_height) {
     // https://js.tensorflow.org/api/latest/#tf.Sequential.fit
     shuffle(xData, yData);
 
-    let xs = tf.tensor(xData, [xData.length, _img_width, _img_height, 1]);
+    let xs = tf.tensor(xData, [xData.length, _img_width * _img_height]);
     let labelstensor = tf.tensor1d(yData, 'int32');
     let ys = tf.oneHot(labelstensor, labelList.length);
     labelstensor.dispose();

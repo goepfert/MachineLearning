@@ -1,58 +1,29 @@
 'use strict';
 
-function createNetwork(width, height, nClasses) {
+function createNetwork(width, height) {
   const IMAGE_WIDTH = width; // columns
   const IMAGE_HEIGHT = height; // rows
-  const NUM_OUTPUT_CLASSES = nClasses;
 
   /**
    * create the network
    */
   function getModel() {
     const model = tf.sequential();
-    const IMAGE_CHANNELS = 1; // default
-
-    model.add(
-      tf.layers.conv2d({
-        inputShape: [IMAGE_WIDTH, IMAGE_HEIGHT, IMAGE_CHANNELS],
-        kernelSize: 3,
-        filters: 5,
-        strides: 1,
-        //padding: 'same',
-        activation: 'relu',
-        kernelInitializer: 'varianceScaling',
-      })
-    );
-
-    model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }));
-
-    model.add(
-      tf.layers.conv2d({
-        kernelSize: 3,
-        filters: 16,
-        strides: 1,
-        //padding: 'same',
-        activation: 'relu',
-        kernelInitializer: 'varianceScaling',
-      })
-    );
-    model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }));
-
-    model.add(tf.layers.flatten());
 
     model.add(
       tf.layers.dense({
-        units: 64,
-        kernelInitializer: 'varianceScaling',
+        inputShape: [IMAGE_WIDTH * IMAGE_HEIGHT],
+        units: 32,
+        kernelInitializer: 'randomNormal',
         activation: 'relu',
       })
     );
 
     model.add(
       tf.layers.dense({
-        units: NUM_OUTPUT_CLASSES,
-        kernelInitializer: 'varianceScaling',
-        activation: 'softmax',
+        units: IMAGE_WIDTH * IMAGE_HEIGHT,
+        kernelInitializer: 'randomNormal',
+        activation: 'sigmoid',
       })
     );
 
@@ -66,7 +37,7 @@ function createNetwork(width, height, nClasses) {
     const optimizer = tf.train.adam();
     model.compile({
       optimizer: optimizer,
-      loss: 'categoricalCrossentropy',
+      loss: 'meanSquaredError',
       metrics: ['accuracy'],
     });
   }
@@ -84,7 +55,7 @@ function createNetwork(width, height, nClasses) {
 
     return model.fit(xs, ys, {
       batchSize: BATCH_SIZE,
-      epochs: 15,
+      epochs: 50,
       shuffle: true,
       validationSplit: 0.2,
       callbacks: onEpochEnd,

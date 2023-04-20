@@ -23,13 +23,13 @@ let xInputs = [];
 let yInputs = [];
 
 //ex 1
-// const learningRate = 0.5;
+const learningRate = 0.5;
 
 //ex2
 // const learningRate = 10;
 
 //ex3
-const learningRate = 0.001;
+// const learningRate = 0.001;
 
 let model;
 
@@ -97,8 +97,8 @@ function setup() {
   model.add(
     tf.layers.dense({
       inputShape: [1],
-      units: 32,
-      kernelInitializer: 'varianceScaling',
+      units: 8,
+      kernelInitializer: 'randomNormal',
       activation: 'sigmoid',
     })
   );
