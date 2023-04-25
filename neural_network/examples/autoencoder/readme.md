@@ -8,12 +8,25 @@ Dataset: Imagedateset used for [doodle classification](https://github.com/goepfe
 
 ## Simple
 
-- Image in \to same image out
+- Image in /to same image out
 - Only dense layers, no CNN
-- encoding dimensionality: 32 (to be checked)
+- Encoding dimensionality: 196
 
 Network architecture:
-- dense layer: input_shape [784], units 32, activation relu
+- dense layer: input_shape [784], units 196, activation relu
 - dense layer: units 784, activation sigmoid
 
+## CNN
 
+- Image in /to same image out
+
+Network architecture:
+
+|    Layer    | Kernel Size | Output Shape |
+| :---------: | :---------: | :----------: |
+|    Input    |      -      | [28, 28, 1]  |
+|   Conv2D    |     3x3     | [14, 14, 8]  |
+|   Conv2D    |     3x3     |  [7, 7, 4]   |
+| Conv2DTrans |     3x3     | [14, 14, 4]  |
+| Conv2DTrans |     3x3     | [28, 28, 8]  |
+|   Conv2D    |     3x3     | [28, 28, 1]  |

@@ -147,7 +147,7 @@ const App = (() => {
         console.log('You gave me: ', currentData.label);
       }
 
-      let x = tf.tensor([image]);
+      let x = tf.tensor4d(image, [1, 28, 28, 1]);
       let y = model.predict(x);
       let output = y.dataSync();
 

@@ -2,8 +2,8 @@
  * Dataset handler, what do you think ... pfff
  */
 
-import Utils from '../../../Utils.js';
-import { Labels } from './Labels.js';
+import Utils from '../../../../Utils.js';
+import { Labels } from '../Labels.js';
 
 function createImageDataset(img_width, img_height) {
   let _data = [];
@@ -98,7 +98,7 @@ function createImageDataset(img_width, img_height) {
     // https://js.tensorflow.org/api/latest/#tf.Sequential.fit
     shuffle(xData, yData);
 
-    let xs = tf.tensor(xData, [xData.length, _img_width * _img_height]);
+    let xs = tf.tensor(xData, [xData.length, _img_width, _img_height, 1]);
     let labelstensor = tf.tensor1d(yData, 'int32');
     let ys = tf.oneHot(labelstensor, labelList.length);
     labelstensor.dispose();

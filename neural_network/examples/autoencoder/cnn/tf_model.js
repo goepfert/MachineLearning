@@ -13,18 +13,58 @@ function createNetwork(width, height) {
    */
   function getModel() {
     const model = tf.sequential();
+    const IMAGE_CHANNELS = 1; // default
 
     model.add(
-      tf.layers.dense({
-        inputShape: [IMAGE_WIDTH * IMAGE_HEIGHT],
-        units: 196,
+      tf.layers.conv2d({
+        inputShape: [IMAGE_WIDTH, IMAGE_HEIGHT, IMAGE_CHANNELS],
+        kernelSize: 3,
+        filters: 8,
+        strides: 2,
+        padding: 'same',
         activation: 'relu',
       })
     );
 
     model.add(
-      tf.layers.dense({
-        units: IMAGE_WIDTH * IMAGE_HEIGHT,
+      tf.layers.conv2d({
+        kernelSize: 3,
+        filters: 4,
+        strides: 2,
+        padding: 'same',
+        activation: 'relu',
+      })
+    );
+
+    // 7*7*8 = 392
+    // 7*7*4 = 196
+    //---------------------------------------------------------------------------
+
+    model.add(
+      tf.layers.conv2dTranspose({
+        kernelSize: 3,
+        filters: 4,
+        strides: 2,
+        padding: 'same',
+        activation: 'relu',
+      })
+    );
+
+    model.add(
+      tf.layers.conv2dTranspose({
+        kernelSize: 3,
+        filters: 8,
+        strides: 2,
+        padding: 'same',
+        activation: 'relu',
+      })
+    );
+
+    model.add(
+      tf.layers.conv2d({
+        kernelSize: 3,
+        filters: 1,
+        padding: 'same',
         activation: 'sigmoid',
       })
     );
@@ -36,7 +76,7 @@ function createNetwork(width, height) {
 
   function compile_model(model) {
     // const optimizer = tf.train.adam(3e-4);
-    const optimizer = tf.train.adam(0.02);
+    const optimizer = tf.train.adam();
     model.compile({
       optimizer: optimizer,
       loss: 'meanSquaredError',
@@ -46,7 +86,7 @@ function createNetwork(width, height) {
 
   async function train(xs, ys, model) {
     // https://machinelearningmastery.com/gentle-introduction-mini-batch-gradient-descent-configure-batch-size/
-    const BATCH_SIZE = 256;
+    const BATCH_SIZE = 128;
     const metrics = ['loss', 'val_loss', 'acc', 'val_acc'];
     const container = {
       name: 'Model Training',
