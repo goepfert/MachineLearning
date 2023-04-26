@@ -16,11 +16,11 @@ let gameID = 0;
 const N_episodes_max = 5000;
 const N_steps_max = 150;
 
-const learning_rate = 0.8;
+const learning_rate = 0.9;
 const discount_rate = 0.95;
 let epsilon;
 const epsilon_max = 1.0;
-const epsilon_min = 0.1;
+const epsilon_min = 0.2;
 const decay_rate = 0.001;
 
 async function init() {
@@ -43,10 +43,10 @@ async function trainLoop() {
     pacman = tileMap.getNewPacman(velocity);
 
     for (let stepIdx = 0; stepIdx < N_steps_max; stepIdx++) {
-      // tileMap.draw(ctx);
-      // pacman.draw(ctx);
-      // await sleep(10);
-      // return;
+      tileMap.draw(ctx);
+      pacman.draw(ctx);
+      await sleep(100);
+      return;
 
       // Choose action of current state
       const currentState = tileMap.getCurrentState();
@@ -98,7 +98,7 @@ async function trainLoop() {
     } // End one episode
     // negative reward if N_steps_max hit?
 
-    if (episodeIdx % 10 == 0) {
+    if (episodeIdx % 100 == 0) {
       tileMap.draw(ctx);
       await sleep(100); // quick fix for image loading
     }
