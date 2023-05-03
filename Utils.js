@@ -109,6 +109,31 @@ const Utils = (() => {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
+  /**
+   * Add salt and pepper noise to image
+   * prob: Probability of the noise
+   *
+   * https://stackoverflow.com/questions/22937589/how-to-add-noise-gaussian-salt-and-pepper-etc-to-image-in-python-with-opencv
+   */
+  function add_SP_Noise(image, prob = 0.1, max = 255) {
+    let output = Array(image.length).fill(0);
+    const thres = 1 - prob;
+
+    for (let idx = 0; idx < image.length; idx++) {
+      let rnd = Math.random();
+
+      if (rnd < prob) {
+        output[idx] = 0;
+      } else if (rnd > thres) {
+        output[idx] = max;
+      } else {
+        output[idx] = image[idx];
+      }
+    }
+
+    return output;
+  }
+
   return {
     map,
     constrain,
@@ -120,6 +145,7 @@ const Utils = (() => {
     download,
     getRandomInt,
     sleep_ms,
+    add_SP_Noise,
   };
 })();
 

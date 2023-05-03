@@ -29,6 +29,7 @@ nn_target_model.trainable = false;
 const syncEveryFrame = 1;
 
 nn_online_model.summary();
+nn_target_model.summary();
 
 // Create ReplayBuffer
 const replayBufferSize = 100000;
@@ -36,14 +37,14 @@ const replayBuffer = new ReplayBuffer(replayBufferSize);
 
 // Training
 let resetNextIter = true; // Reset next iteration
-const batchSize = 32; //replayBufferSize / 2; // Sample size for parallel training
-const learningRate = 0.001;
+const batchSize = 64; //replayBufferSize / 2; // Sample size for parallel training, 32
+const learningRate = 0.9;
 const discountRate = 0.98;
 let epsilon;
 const epsilon_max = 1.0;
 const epsilon_min = 0.01;
-const decay_rate = 0.001;
-const trainingIterations = 50000; // How many batches will be trained 5000 works, but 10000 not ... what?
+const decay_rate = 0.01;
+const trainingIterations = 20000; // How many batches will be trained
 
 let isTrained = false;
 let gameID;
@@ -180,7 +181,7 @@ function trainOnReplayBatch(optimizer) {
       // Note that we use apply() instead of predict because apply() allow access to the gradient
       const online = nn_online_model.apply(stateTensor, { training: true });
       const oneHot = tf.oneHot(actionTensor, globals.actions.length);
-      const qs = online.mul(oneHot).sum(-1);
+      const qs = online.mul(oneHot).sum(-1); //https://stackoverflow.com/questions/59702785/what-does-dim-1-or-2-mean-in-torch-sum, we are dealing with batches
 
       // Compute the Q value of the next state.
       // It is R if the next state is terminal and R + max Q(next_state) if the next state is not terminal
