@@ -37,14 +37,14 @@ const replayBuffer = new ReplayBuffer(replayBufferSize);
 
 // Training
 let resetNextIter = true; // Reset next iteration
-const batchSize = 64; //replayBufferSize / 2; // Sample size for parallel training, 32
-const learningRate = 0.9;
+const batchSize = 32; //replayBufferSize / 2; // Sample size for parallel training, 32
+const learningRate = 0.005; // for optimizer
 const discountRate = 0.98;
 let epsilon;
 const epsilon_max = 1.0;
 const epsilon_min = 0.01;
 const decay_rate = 0.01;
-const trainingIterations = 20000; // How many batches will be trained
+const trainingIterations = 100000; // How many batches will be trained
 
 let isTrained = false;
 let gameID;
@@ -92,7 +92,8 @@ function playOneStep(explore_only = false) {
   if (resetNextIter) {
     // console.log('resetting cartpole');
     epsilon = epsilon_max;
-    cartpole.random(); // a little bit mor randomness while training
+    // cartpole.random(); // a little bit mor randomness while training
+    cartpole.reset(); // or just reset the cartpole?
     resetNextIter = false;
   }
 

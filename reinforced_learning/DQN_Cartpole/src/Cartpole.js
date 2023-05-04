@@ -121,7 +121,7 @@ class Cartpole {
     // }
 
     if (this.x < -4.0 || this.x > 4.0 || this.theta < -globals.fifty_degrees || this.theta > globals.fifty_degrees) {
-      // this.reward = this.reward - 100;
+      this.reward = this.reward - 1;
       this.done = true;
     }
   }
