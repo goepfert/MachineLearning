@@ -2,7 +2,7 @@
  *
  */
 import Utils from '../../../../Utils.js';
-import { createImageDataset } from '../Dataset.js';
+import { createImageDataset } from '../../cnn_noise/Dataset.js';
 
 const App = (() => {
   const header_length = 80;
@@ -21,7 +21,7 @@ const App = (() => {
   function handleFileSelect_load(evt) {
     const file = evt.target.files[0];
     const reader = new FileReader();
-    reader.addEventListener('loadend', (event) => {
+    reader.addEventListener('load', (event) => {
       // console.log(event.target);
       let arrayBuffer = event.target.result;
       uint8View = new Uint8Array(arrayBuffer);

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./style.css" />
+    <title>simple autoencoder</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <label for="file-load-dataset" class="button">Load Datasets</label>
+        <input type="file" id="file-load-dataset" accept="*.data" multiple style="display: none" />
+        <!-- <span id="filename">no file selected ...</span> -->
+
+        <div class="button" id="train-btn">Train</div>
+      </div>
+      <div class="row">
+        <canvas id="canvas"></canvas>
+        <canvas id="canvas_result"></canvas>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis@1.0.2/dist/tfjs-vis.umd.min.js"></script>
+    <script src="./cnn_celeb.js" type="module"></script>
+  </body>
+</html>

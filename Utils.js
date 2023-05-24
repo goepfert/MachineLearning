@@ -46,18 +46,15 @@ const Utils = (() => {
   }
 
   /**
-   * Returns normal distributed random number, mean = 0, sigma = 1
+   * Returns normal distributed random number, mean = 0, sigma=1
    * https://stackoverflow.com/questions/25582882/javascript-math-random-normal-distribution-gaussian-bell-curve
    */
-  function randomGaussian() {
-    let u = 0;
-    let v = 0;
-    while (u === 0) u = Math.random(); //Converting [0,1) to (0,1)
-    while (v === 0) v = Math.random();
-    let num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
-    num = num / 10.0 + 0.5; // Translate to 0 -> 1
-    if (num > 1 || num < 0) return randomGaussian(); // resample between 0 and 1
-    return num;
+  function randomGaussian(mean = 0, stdev = 1) {
+    let u = 1 - Math.random(); // Converting [0,1) to (0,1]
+    let v = Math.random();
+    let z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+    // Transform to the desired mean and standard deviation:
+    return z * stdev + mean;
   }
 
   function drawLine(context, x1, y1, x2, y2, width, style) {
@@ -134,6 +131,30 @@ const Utils = (() => {
     return output;
   }
 
+  /**
+   *
+   */
+  function add_Gaussian_Noise(image, prob = 0.1, max = 255) {
+    let output = Array(image.length).fill(0);
+    const thres = 1 - prob;
+
+    for (let idx = 0; idx < image.length; idx++) {
+      let rnd = Math.random();
+      if (rnd > thres) {
+        output[idx] = 1 - image[idx] + randomGaussian(max / 2, max / 4);
+        // output[idx] = randomGaussian(max / 2, max / 4);
+      } else {
+        output[idx] = image[idx];
+        // output[idx] = 1;
+      }
+
+      output[idx] = constrain(output[idx], 0, max);
+      // console.log(output[idx]);
+    }
+
+    return output;
+  }
+
   return {
     map,
     constrain,
@@ -146,6 +167,7 @@ const Utils = (() => {
     getRandomInt,
     sleep_ms,
     add_SP_Noise,
+    add_Gaussian_Noise,
   };
 })();
 

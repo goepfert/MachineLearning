@@ -29,6 +29,16 @@ function createNetwork(width, height) {
     model.add(
       tf.layers.conv2d({
         kernelSize: 3,
+        filters: 6,
+        strides: 2,
+        padding: 'valid',
+        activation: 'relu',
+      })
+    );
+
+    model.add(
+      tf.layers.conv2d({
+        kernelSize: 3,
         filters: 4,
         strides: 2,
         padding: 'same',
@@ -46,6 +56,16 @@ function createNetwork(width, height) {
         filters: 4,
         strides: 2,
         padding: 'same',
+        activation: 'relu',
+      })
+    );
+
+    model.add(
+      tf.layers.conv2dTranspose({
+        kernelSize: 3,
+        filters: 6,
+        strides: 2,
+        padding: 'valid',
         activation: 'relu',
       })
     );

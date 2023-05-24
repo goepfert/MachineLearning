@@ -28,7 +28,7 @@ const App = (() => {
 
   // THIS SUCKSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS !!!!!!!!!!!!!!!!
   // ... but works
-  const noise_prob = 0.1;
+  const noise_prob = 0.2;
   const noise_fcn = Utils.add_Gaussian_Noise;
 
   // - Drawing ---------------------------------------------------------------
