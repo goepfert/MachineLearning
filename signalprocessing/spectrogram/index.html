@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://kit.fontawesome.com/e003a6f9a1.js" crossorigin="anonymous"></script>
+    <title>audio features</title>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Spectrogram</h1>
+
+      <canvas id="oscilloscope" height="0"></canvas>
+
+      <canvas id="fft-series" height="0"></canvas>
+
+      <!-- Spectograms -->
+      <h3>Mel Spectrum of Microphone Input</h3>
+      <canvas id="fft-series mel" height="0"></canvas>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dygraph/2.1.0/dygraph.js"></script>
+    <script src="mainapp.js" type="module"></script>
+  </body>
+</html>
