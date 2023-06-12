@@ -307,3 +307,5 @@ function createFFT() {
     inverseTransformMagAndPhase,
   };
 }
+
+export { createFFT };

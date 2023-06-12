@@ -1,8 +1,7 @@
 /**
  * TODO: find more suitable name
  */
-
-'use strict';
+import { createFFT } from './fft.js';
 
 const Core = (function () {
   /**

@@ -7,6 +7,8 @@
 
 'use strict';
 
+import utils from './utils.js';
+
 function createWindowing(length) {
   const _LENGTH = length;
   const _WEIGHTS_HAMMING_WINDOW = [];
@@ -40,3 +42,5 @@ function createWindowing(length) {
     hanning,
   };
 }
+
+export { createWindowing };
