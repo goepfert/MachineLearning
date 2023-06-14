@@ -20,17 +20,19 @@ const BUFFER_SIZE = 1024; // the chunks we get from the input source (e.g. the m
 const FRAME_SIZE = samplerate * 0.025; // Frame_time == 25 ms
 const FRAME_STRIDE = samplerate * 0.01; // Frame_stride == 10 ms (=> 15 ms overlap)
 
-// ASR
+// Ringbuffer
 const buffertime = 1; // in seconds
-const RECORD_SIZE = Math.floor((samplerate * buffertime) / BUFFER_SIZE) * BUFFER_SIZE; // ~buffertime in number of samples, ensure integer fraction size of concat
 
 // Ringbuffer Time Domain (1D)
-const RB_SIZE = 2 * RECORD_SIZE; // arbitrary choice, shall be gt RECORD_SIZE and integer fraction of BUFFER_SIZE
+const RB_SIZE = Math.floor((samplerate * buffertime) / BUFFER_SIZE) * BUFFER_SIZE; // ~buffertime in number of samples, ensure integer fraction size of concat
 const timeDomainData = new CircularBuffer(RB_SIZE);
 
 // RingBuffer Framing (2D)
 const RB_SIZE_FRAMING = utils.getNumberOfFrames(RB_SIZE, FRAME_SIZE, FRAME_STRIDE); // how many frames with overlap fit into time domain ringbuffer
-const RECORD_SIZE_FRAMING = utils.getNumberOfFrames(RECORD_SIZE, FRAME_SIZE, FRAME_STRIDE); // number of frames in record
+
+console.log('Length ringbuffer time domain: ', RB_SIZE);
+console.log('Length ringbuffer frequency domain with overlap: ', RB_SIZE_FRAMING);
+
 let Data_Pos = 0; // head position
 const DFT_Data = []; // after fourier transform [B2P1][RB_SIZE_FRAMING]
 const MEL_RAW = []; // log mel filter coefficients
@@ -44,17 +46,15 @@ const fft = createFFT(FRAME_SIZE);
 const B2P1 = FRAME_SIZE / 2 + 1; // Length of frequency domain data
 
 // Mel Filter
-const N_MEL_FILTER = 40; // Number of Mel Filterbanks (power of 2 for DCT)
+const N_MEL_FILTER = 100; // Number of Mel Filterbanks (power of 2 for DCT)
 const filter = create_melfilter();
-const MIN_FREQUENCY = 300; // lower end of first mel filter bank
+const MIN_FREQUENCY = 100; // lower end of first mel filter bank
 // TODO: if we cut off frequencies above 8 kHz, we may save some mips if we downsample e.g. to 16 kHz before (low pass and taking every third sample if we have 48 kHz)
-const MAX_FREQUENCY = 8000; // upper end of last mel filterbank
+const MAX_FREQUENCY = 4000; // upper end of last mel filterbank
 filter.init(samplerate, FRAME_SIZE, MIN_FREQUENCY, MAX_FREQUENCY, N_MEL_FILTER);
 
 // Plotting
-const ANIM_INTERVALL = 20;
-let STARTFRAME; // Recording Startframe (used for drawing)
-let ENDFRAME; // Recording Endframe (used for drawing)
+const ANIM_INTERVALL = 0;
 const MIN_EXP = -1; // 10^{min_exp} linear, log scale minimum
 const MAX_EXP = 3; // 10^{max_exp} linear, log scale max
 
@@ -71,7 +71,7 @@ for (let idx = 0; idx < RB_SIZE_FRAMING; idx++) {
 }
 
 // Canvas width and height
-let drawit = [true, true, true, true];
+let drawit = [true, true, true];
 let canvas;
 let canvasCtx;
 let canvas_fftSeries;
@@ -83,21 +83,21 @@ let context_fftSeries_mel;
   if (drawit[0]) {
     canvas = document.getElementById('oscilloscope');
     canvasCtx = canvas.getContext('2d');
-    canvas.width = 2 * RB_SIZE_FRAMING;
+    canvas.width = 4 * RB_SIZE_FRAMING;
     canvas.height = 100; //B2P1;
   }
 
   if (drawit[1]) {
     canvas_fftSeries = document.getElementById('fft-series');
     context_fftSeries = canvas_fftSeries.getContext('2d');
-    canvas_fftSeries.width = 2 * RB_SIZE_FRAMING;
+    canvas_fftSeries.width = 4 * RB_SIZE_FRAMING;
     canvas_fftSeries.height = B2P1;
   }
 
   if (drawit[2]) {
     canvas_fftSeries_mel = document.getElementById('fft-series mel');
     context_fftSeries_mel = canvas_fftSeries_mel.getContext('2d');
-    canvas_fftSeries_mel.width = 2 * RB_SIZE_FRAMING;
+    canvas_fftSeries_mel.width = 4 * RB_SIZE_FRAMING;
     canvas_fftSeries_mel.height = 4 * N_MEL_FILTER;
   }
 })();
@@ -121,14 +121,6 @@ const handleSuccess = function (stream) {
     timeDomainData.concat(inputBuffer.getChannelData(0));
 
     doFraming();
-
-    // Clear frames (for drawing start and end of vertical line when recording)
-    if (STARTFRAME == Data_Pos) {
-      STARTFRAME = undefined;
-    }
-    if (ENDFRAME == Data_Pos) {
-      ENDFRAME = undefined;
-    }
   }; //end onprocess mic data
 };
 
@@ -210,7 +202,7 @@ const draw = function () {
       if (pos < 0) pos = 0;
       mag = DFT_Data[pos][i];
       mag = Math.round(mag);
-      barHeight = -canvas.height + utils.map(mag, 0, 255, 0, canvas.height);
+      barHeight = -canvas.height + utils.map(mag, 0, 255, 0, canvas.height) - 1;
       canvasCtx.fillStyle = utils.rainbow[mag];
       canvasCtx.fillRect(x, canvas.height, barWidth, barHeight);
       x += barWidth;
@@ -247,7 +239,7 @@ const draw = function () {
     let rectWidth = canvas_fftSeries.width / RB_SIZE_FRAMING;
     let xpos = 0;
     let ypos;
-    for (let xidx = Data_Pos + 1; xidx <= Data_Pos + RB_SIZE_FRAMING; xidx++) {
+    for (let xidx = Data_Pos; xidx <= Data_Pos + RB_SIZE_FRAMING; xidx++) {
       ypos = canvas_fftSeries.height;
       for (let yidx = 0; yidx < B2P1; yidx++) {
         mag = DFT_Data[xidx % RB_SIZE_FRAMING][yidx];
@@ -278,11 +270,7 @@ const draw = function () {
       for (let yidx = 0; yidx < N_MEL_FILTER; yidx++) {
         mag = LOG_MEL[xidx % RB_SIZE_FRAMING][yidx];
         mag = Math.round(mag);
-        if (xidx % RB_SIZE_FRAMING == STARTFRAME || xidx % RB_SIZE_FRAMING == ENDFRAME) {
-          context_fftSeries_mel.fillStyle = '#800000';
-        } else {
-          context_fftSeries_mel.fillStyle = utils.rainbow[mag];
-        }
+        context_fftSeries_mel.fillStyle = utils.rainbow[mag];
         context_fftSeries_mel.fillRect(xpos, ypos, rectWidth, -rectHeight);
         ypos -= rectHeight;
       }
