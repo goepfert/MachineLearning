@@ -9,7 +9,7 @@ const frameRate = 30;
 let svgContainer = d3.select('#cartpole-drawing').attr('height', height).attr('width', width);
 let cartpole = new Cartpole(svgContainer, { dt: 0.01, forceMult: 5, g: 1 });
 
-const N_episodes_max = 400000;
+const N_episodes_max = 200000;
 const N_steps_max = 1000;
 
 const learning_rate = 0.95;

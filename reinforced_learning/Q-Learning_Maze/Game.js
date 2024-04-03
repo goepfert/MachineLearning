@@ -13,11 +13,11 @@ let tileMap;
 let pacman;
 let gameID = 0;
 
-const N_episodes_max = 5000;
-const N_steps_max = 150;
+const N_episodes_max = 300;
+const N_steps_max = 250;
 
-const learning_rate = 0.9;
-const discount_rate = 0.95;
+const learning_rate = 0.8;
+const discount_rate = 0.9;
 let epsilon;
 const epsilon_max = 1.0;
 const epsilon_min = 0.2;
@@ -29,7 +29,7 @@ async function init() {
   pacman = tileMap.getNewPacman(velocity);
   epsilon = epsilon_max;
 
-  await sleep(100); // quick fix for image loading
+  await sleep(200); // quick fix for image loading
   tileMap.draw(ctx);
   pacman.draw(ctx);
 }
@@ -45,8 +45,8 @@ async function trainLoop() {
     for (let stepIdx = 0; stepIdx < N_steps_max; stepIdx++) {
       tileMap.draw(ctx);
       pacman.draw(ctx);
-      await sleep(100);
-      return;
+      // await sleep(100);
+      // return;
 
       // Choose action of current state
       const currentState = tileMap.getCurrentState();
@@ -91,16 +91,16 @@ async function trainLoop() {
       }
 
       // Check if episode ends prematurely
-      if (reward == 100) {
-        console.log('Exit current episode: ', reward, ', stepIdx / nMaxSteps', stepIdx, N_steps_max);
+      if (reward == 100 || reward == -1) {
+        // console.log('Exit current episode: ', reward, ', stepIdx / nMaxSteps', stepIdx, N_steps_max);
         break;
       }
     } // End one episode
     // negative reward if N_steps_max hit?
 
-    if (episodeIdx % 100 == 0) {
+    if (episodeIdx % 10 == 0) {
       tileMap.draw(ctx);
-      await sleep(100); // quick fix for image loading
+      await sleep(5); // quick fix for image loading
     }
   } // End all episodes
 
