@@ -2,7 +2,8 @@ import { MovingDirection } from './MovingDirection.js';
 
 const createPacman = (x, y, tileSize, velocity, tileMap) => {
   const pacmanImage = new Image();
-  pacmanImage.src = 'images/Agent.png';
+  // pacmanImage.src = 'images/Agent.png';
+  pacmanImage.src = 'images/mouse.png';
 
   function draw(ctx) {
     ctx.drawImage(pacmanImage, x, y, tileSize, tileSize); //Draw pacman with its center at (0,0)

@@ -98,7 +98,7 @@ async function trainLoop() {
     } // End one episode
     // negative reward if N_steps_max hit?
 
-    if (episodeIdx % 10 == 0) {
+    if (episodeIdx % 5 == 0) {
       tileMap.draw(ctx);
       await sleep(5); // quick fix for image loading
     }

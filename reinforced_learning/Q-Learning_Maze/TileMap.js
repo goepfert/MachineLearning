@@ -19,14 +19,14 @@ const createTileMap = (tileSize) => {
   // ];
 
   // Frozen Lake
-  // const masterTileMap = [
-  //   [1, 1, 1, 1, 1, 1],
-  //   [1, 7, 0, 0, 0, 1],
-  //   [1, 0, 4, 0, 4, 1],
-  //   [1, 0, 0, 0, 0, 1],
-  //   [1, 4, 0, 0, 9, 1],
-  //   [1, 1, 1, 1, 1, 1],
-  // ];
+  const masterTileMap = [
+    [1, 1, 1, 1, 1, 1],
+    [1, 7, 0, 0, 0, 1],
+    [1, 0, 4, 0, 2, 1],
+    [1, 0, 0, 0, 0, 1],
+    [1, 4, 0, 0, 9, 1],
+    [1, 1, 1, 1, 1, 1],
+  ];
 
   // Kitty Cat 1 (upper path)
   // const masterTileMap = [
@@ -60,51 +60,35 @@ const createTileMap = (tileSize) => {
   //   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   // ];
 
-  // Kitty Cat 3 (upper path)
+  // Kitty Cat 3 (reward 1 or 5)
   // const masterTileMap = [
   //   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   //   [1, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
   //   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
   //   [1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1],
   //   [1, 0, 0, 1, 9, 0, 0, 0, 1, 0, 0, 1],
-  //   [1, 0, 4, 1, 0, 0, 0, 0, 1, 0, 0, 1],
-  //   [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
-  //   [1, 4, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1],
+  //   [1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1],
+  //   [1, 0, 0, 1, 0, 0, 4, 0, 0, 0, 0, 1],
+  //   [1, 0, 0, 1, 0, 4, 0, 0, 1, 0, 0, 1],
   //   [1, 0, 0, 1, 1, 1, 2, 1, 1, 0, 0, 1],
-  //   [1, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  //   [1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 1],
   //   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
   //   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   // ];
 
-  // Kitty Cat 4 (reward 1 or 5)
-  const masterTileMap = [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1],
-    [1, 0, 0, 1, 9, 0, 0, 0, 1, 0, 0, 1],
-    [1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1],
-    [1, 0, 0, 1, 0, 0, 4, 0, 0, 0, 0, 1],
-    [1, 0, 0, 1, 0, 4, 0, 0, 1, 0, 0, 1],
-    [1, 0, 0, 1, 1, 1, 2, 1, 1, 0, 0, 1],
-    [1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  ];
-
-  // Kitty Cat
+  // Blank
   // const masterTileMap = [
   //   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  //   [1, 7, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
-  //   [1, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 1],
-  //   [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
-  //   [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1],
-  //   [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1],
-  //   [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1],
-  //   [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1],
-  //   [1, 0, 0, 0, 4, 0, 1, 1, 1, 0, 2, 1],
-  //   [1, 0, 4, 0, 4, 0, 1, 0, 0, 0, 0, 1],
-  //   [1, 0, 0, 0, 0, 0, 1, 9, 0, 0, 0, 1],
+  //   [1, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  //   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  //   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  //   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  //   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  //   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  //   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  //   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  //   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  //   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 1],
   //   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   // ];
 
@@ -119,16 +103,17 @@ const createTileMap = (tileSize) => {
   wall.src = 'images/Wall.png';
 
   const agent = new Image();
-  agent.src = 'images/Agent.png';
+  // agent.src = 'images/Agent.png';
+  // agent.src = 'images/mouse-cartoon-beanie.jpg';
 
   const goal = new Image();
-  goal.src = 'images/Goal.png';
+  goal.src = 'images/Beer.png';
 
   const reward = new Image();
-  reward.src = 'images/Reward.png';
+  reward.src = 'images/Cheese.png';
 
   const poison = new Image();
-  poison.src = 'images/Poison.png';
+  poison.src = 'images/Poison2.png';
 
   const right_img = new Image();
   right_img.src = 'images/Right50.png';
@@ -155,7 +140,7 @@ const createTileMap = (tileSize) => {
             break;
           case 2:
             ctx.drawImage(reward, colIdx * tileSize, rowIdx * tileSize, tileSize, tileSize);
-            drawArrow(ctx, rowIdx, colIdx);
+            // drawArrow(ctx, rowIdx, colIdx);
             break;
           case 4:
             ctx.drawImage(poison, colIdx * tileSize, rowIdx * tileSize, tileSize, tileSize);
@@ -296,7 +281,7 @@ const createTileMap = (tileSize) => {
         }
         break;
       case 2:
-        reward = 5; // 1 or 5
+        reward = 1; // 1 or 5
         if (clearAfter) {
           tileMap[pos.y / tileSize][pos.x / tileSize] = 0;
         }
