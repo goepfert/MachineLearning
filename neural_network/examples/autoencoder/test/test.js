@@ -1,4 +1,4 @@
-import { createImageDataset } from '../Dataset.js';
+import { createImageDataset } from './Dataset.js';
 import Utils from '../../../../Utils.js';
 
 const canvas = document.getElementById('canvas');

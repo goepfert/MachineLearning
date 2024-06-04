@@ -282,6 +282,7 @@ const createTileMap = (tileSize) => {
         break;
       case 2:
         reward = 1; // 1 or 5
+        // reward = 5; // 1 or 5
         if (clearAfter) {
           tileMap[pos.y / tileSize][pos.x / tileSize] = 0;
         }
